@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ereignis-Zeitrechner</title>
+    <title>Vorschlag für neues Ereignis</title>
     <style>
-        /* Dein ursprünglicher CSS-Code bleibt gleich */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
@@ -28,7 +27,50 @@
             font-size: 1.2rem;
             margin: 0.5rem 0 1.5rem;
         }
-        header button {
+        #contact-form {
+            margin: 2rem auto;
+            padding: 2rem;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+        }
+        #contact-form h2 {
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            color: #00796b;
+        }
+        #contact-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        #contact-form input, #contact-form textarea {
+            width: 100%;
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        #contact-form button {
+            padding: 0.8rem 1.5rem;
+            background: #00796b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        #contact-form button:hover {
+            background: #00574b;
+        }
+        .back-button {
+            margin-top: 2rem;
             padding: 0.8rem 1.5rem;
             background: #004d40;
             color: white;
@@ -38,92 +80,37 @@
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
-        header button:hover {
+        .back-button:hover {
             background: #00332e;
-        }
-        .countdown {
-            font-size: 1.8rem;
-            margin: 1rem 0;
-            color: #00796b;
-        }
-        .event {
-            margin: 1rem auto;
-            padding: 1.5rem;
-            border-radius: 8px;
-            background: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s;
-            width: 90%;
-            max-width: 600px;
-            overflow: hidden;
-        }
-        .event:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Ereignis-Zeitrechner</h1>
-        <p>Sieh dir an, wie viel Zeit bis Weihnachten, Silvester und mehr bleibt!</p>
-        <button onclick="window.location.href='vorschlag.html'">Vorschlag für neues Ereignis</button>
+        <h1>Vorschlag für neues Ereignis</h1>
+        <p>Teile uns dein neues Ereignis mit!</p>
     </header>
 
-    <div id="events">
-        <!-- Events werden hier generiert -->
+    <div id="contact-form">
+        <h2>Vorschlag für ein neues Ereignis</h2>
+        <form action="https://formspree.io/f/mgvvpoap" method="POST">
+            <label for="event-name">Ereignisname:</label>
+            <input type="text" id="event-name" name="event-name" required>
+
+            <label for="event-date">Datum des Ereignisses:</label>
+            <input type="date" id="event-date" name="event-date" required>
+
+            <label for="event-time">Uhrzeit des Ereignisses:</label>
+            <input type="time" id="event-time" name="event-time" required>
+
+            <label for="comments">Weitere Kommentare:</label>
+            <textarea id="comments" name="comments" rows="4"></textarea>
+
+            <button type="submit">Absenden</button>
+        </form>
+
+        <!-- Button zum Zurückkehren zur Hauptseite -->
+        <button class="back-button" onclick="window.location.href='index.html'">Zurück zur Hauptseite</button>
     </div>
-
-    <script>
-        const events = [
-            { name: "Weihnachten", date: "2025-12-25T00:00:00" },
-            { name: "Silvester", date: "2025-12-31T23:59:59" },
-            { name: "Neujahr", date: "2026-01-01T00:00:00" }
-        ];
-
-        const eventsContainer = document.getElementById("events");
-
-        function updateCountdowns() {
-            eventsContainer.innerHTML = "";
-
-            events.forEach(event => {
-                const eventDate = new Date(event.date);
-                const now = new Date();
-                const timeDifference = eventDate - now;
-
-                if (timeDifference > 0) {
-                    const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
-                    const totalSeconds = Math.floor(timeDifference / 1000);
-
-                    const eventElement = document.createElement("div");
-                    eventElement.className = "event";
-                    eventElement.innerHTML = `
-                        <h2>${event.name}</h2>
-                        <p class="countdown">Noch ${days} Tage, ${hours} Stunden, ${minutes} Minuten, ${seconds} Sekunden</p>
-                        <div class="details">
-                            <p>Insgesamt ${totalSeconds} Sekunden verbleibend</p>
-                        </div>
-                    `;
-
-                    eventsContainer.appendChild(eventElement);
-                } else {
-                    const eventElement = document.createElement("div");
-                    eventElement.className = "event";
-                    eventElement.innerHTML = `
-                        <h2>${event.name}</h2>
-                        <p class="countdown">Das Ereignis ist bereits eingetroffen!</p>
-                    `;
-
-                    eventsContainer.appendChild(eventElement);
-                }
-            });
-        }
-
-        setInterval(updateCountdowns, 1000);
-        updateCountdowns();
-    </script>
 </body>
 </html>
