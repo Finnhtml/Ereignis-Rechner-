@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ereignis-Zeitrechner</title>
     <style>
-        /* Dein ursprünglicher CSS-Code bleibt gleich */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
@@ -60,6 +59,14 @@
         .event:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        .details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .event:hover .details {
+            max-height: 100px;
         }
     </style>
 </head>
