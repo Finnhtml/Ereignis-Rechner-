@@ -54,7 +54,6 @@
             transition: all 0.3s;
             width: 90%;
             max-width: 600px;
-            overflow: hidden;
         }
         .event:hover {
             transform: translateY(-5px);
@@ -70,8 +69,8 @@
         }
         #contact-form {
             display: none;
-            margin: 2rem auto;
-            padding: 2rem;
+            margin: 1rem 0 2rem;
+            padding: 1.5rem;
             border-radius: 8px;
             background: white;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -111,63 +110,49 @@
         #contact-form button:hover {
             background: #00574b;
         }
-        .back-button {
-            margin-top: 2rem;
-            padding: 0.8rem 1.5rem;
-            background: #004d40;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 1rem;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        .back-button:hover {
-            background: #00332e;
-        }
     </style>
 </head>
 <body>
     <header>
         <h1>Ereignis-Zeitrechner</h1>
-        <p>Sieh dir an, wie viel Zeit bis Weihnachten, Silvester und mehr bleibt!</p>
+        <p>Sieh dir an, wie viel Zeit bis Weihnachten, Ostern, Halloween und mehr bleibt!</p>
         <button onclick="toggleContactForm()">Vorschlag für neues Ereignis</button>
+        <div id="contact-form">
+            <h2>Vorschlag für ein neues Ereignis</h2>
+            <form action="https://formspree.io/f/mgvvpoap" method="POST">
+                <label for="event-name">Ereignisname:</label>
+                <input type="text" id="event-name" name="event-name" required>
+
+                <label for="event-date">Datum des Ereignisses:</label>
+                <input type="date" id="event-date" name="event-date" required>
+
+                <label for="event-time">Uhrzeit des Ereignisses:</label>
+                <input type="time" id="event-time" name="event-time" required>
+
+                <label for="comments">Weitere Kommentare:</label>
+                <textarea id="comments" name="comments" rows="4"></textarea>
+
+                <button type="submit">Absenden</button>
+            </form>
+        </div>
     </header>
 
     <div id="events">
         <!-- Events werden hier generiert -->
     </div>
 
-    <div id="contact-form">
-        <h2>Vorschlag für ein neues Ereignis</h2>
-        <form action="https://formspree.io/f/mgvvpoap" method="POST">
-            <label for="event-name">Ereignisname:</label>
-            <input type="text" id="event-name" name="event-name" required>
-
-            <label for="event-date">Datum des Ereignisses:</label>
-            <input type="date" id="event-date" name="event-date" required>
-
-            <label for="event-time">Uhrzeit des Ereignisses:</label>
-            <input type="time" id="event-time" name="event-time" required>
-
-            <label for="comments">Weitere Kommentare:</label>
-            <textarea id="comments" name="comments" rows="4"></textarea>
-
-            <button type="submit">Absenden</button>
-        </form>
-
-        <!-- Button zum Zurückkehren zur Hauptseite -->
-        <button class="back-button" onclick="toggleContactForm()">Zurück zur Ereignisliste</button>
-    </div>
-
     <script>
         const events = [
             { name: "Weihnachten", date: "2025-12-25T00:00:00" },
             { name: "Silvester", date: "2025-12-31T23:59:59" },
-            { name: "Neujahr", date: "2026-01-01T00:00:00" }
+            { name: "Ostern", date: "2025-04-20T00:00:00" },
+            { name: "Valentinstag", date: "2025-02-14T00:00:00" },
+            { name: "Halloween", date: "2025-10-31T00:00:00" },
+            { name: "Tag der Deutschen Einheit", date: "2025-10-03T00:00:00" }
         ];
 
         const eventsContainer = document.getElementById("events");
+        const contactForm = document.getElementById("contact-form");
 
         function updateCountdowns() {
             eventsContainer.innerHTML = "";
@@ -182,16 +167,12 @@
                     const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
                     const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
-                    const totalSeconds = Math.floor(timeDifference / 1000);
 
                     const eventElement = document.createElement("div");
                     eventElement.className = "event";
                     eventElement.innerHTML = `
                         <h2>${event.name}</h2>
                         <p class="countdown">Noch ${days} Tage, ${hours} Stunden, ${minutes} Minuten, ${seconds} Sekunden</p>
-                        <div class="details">
-                            <p>Insgesamt ${totalSeconds} Sekunden verbleibend</p>
-                        </div>
                     `;
 
                     eventsContainer.appendChild(eventElement);
@@ -209,8 +190,7 @@
         }
 
         function toggleContactForm() {
-            const form = document.getElementById("contact-form");
-            form.style.display = form.style.display === "none" || form.style.display === "" ? "block" : "none";
+            contactForm.style.display = contactForm.style.display === "none" || contactForm.style.display === "" ? "block" : "none";
         }
 
         setInterval(updateCountdowns, 1000);
