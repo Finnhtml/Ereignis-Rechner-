@@ -51,25 +51,28 @@
             border-radius: 8px;
             background: white;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s;
             width: 90%;
             max-width: 600px;
+            position: relative;
         }
         .event:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
-        .details {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-        .event:hover .details {
-            max-height: 100px;
+        .new-badge {
+            background: red;
+            color: white;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-radius: 4px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
         }
         #contact-form {
             display: none;
-            margin: 1rem 0 2rem;
+            margin: 1rem auto;
             padding: 1.5rem;
             border-radius: 8px;
             background: white;
@@ -137,18 +140,22 @@
         </div>
     </header>
 
-    <div id="events">
-        <!-- Events werden hier generiert -->
-    </div>
+    <div id="events"></div>
 
     <script>
         const events = [
             { name: "Weihnachten", date: "2025-12-25T00:00:00" },
             { name: "Silvester", date: "2025-12-31T23:59:59" },
             { name: "Ostern", date: "2025-04-20T00:00:00" },
-            { "name": "Valentinstag", "date": "2025-02-14T00:00:00" },
+            { name: "Valentinstag", date: "2026-02-14T00:00:00" }, // Valentinstag für 2026
             { name: "Halloween", date: "2025-10-31T00:00:00" },
-            { name: "Tag der Deutschen Einheit", date: "2025-10-03T00:00:00" }
+            { name: "Tag der Deutschen Einheit", date: "2025-10-03T00:00:00" },
+            { 
+                name: "Schanzenfest Drachenlord", 
+                date: "2025-08-09T00:00:00",
+                description: "Wir bauen die Schanze wieder auf!",
+                isNew: true
+            }
         ];
 
         const eventsContainer = document.getElementById("events");
@@ -162,30 +169,30 @@
                 const now = new Date();
                 const timeDifference = eventDate - now;
 
+                const eventElement = document.createElement("div");
+                eventElement.className = "event";
+                eventElement.innerHTML = `<h2>${event.name}</h2>`;
+
+                if (event.isNew) {
+                    eventElement.innerHTML += `<span class="new-badge">Neu!</span>`;
+                }
+
+                if (event.description) {
+                    eventElement.innerHTML += `<p>${event.description}</p>`;
+                }
+
                 if (timeDifference > 0) {
                     const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
                     const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
                     const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
 
-                    const eventElement = document.createElement("div");
-                    eventElement.className = "event";
-                    eventElement.innerHTML = `
-                        <h2>${event.name}</h2>
-                        <p class="countdown">Noch ${days} Tage, ${hours} Stunden, ${minutes} Minuten, ${seconds} Sekunden</p>
-                    `;
-
-                    eventsContainer.appendChild(eventElement);
+                    eventElement.innerHTML += `<p class="countdown">Noch ${days} Tage, ${hours} Stunden, ${minutes} Minuten, ${seconds} Sekunden</p>`;
                 } else {
-                    const eventElement = document.createElement("div");
-                    eventElement.className = "event";
-                    eventElement.innerHTML = `
-                        <h2>${event.name}</h2>
-                        <p class="countdown">Das Ereignis ist bereits eingetroffen!</p>
-                    `;
-
-                    eventsContainer.appendChild(eventElement);
+                    eventElement.innerHTML += `<p class="countdown">Das Ereignis ist bereits eingetroffen!</p>`;
                 }
+
+                eventsContainer.appendChild(eventElement);
             });
         }
 
