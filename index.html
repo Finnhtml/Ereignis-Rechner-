@@ -9,75 +9,21 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background: #121212;
-            color: #e0e0e0;
+            background: linear-gradient(135deg, #1e1e1e, #2c2c2c);
+            color: #fff;
         }
         header {
-            background: #1e1e1e;
+            background: #444;
             color: white;
             padding: 2rem 1rem;
             text-align: center;
         }
+        header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+        }
         header button {
-            padding: 0.8rem 1.5rem;
-            background: #333;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .event {
-            margin: 1rem auto;
-            padding: 1.5rem;
-            border-radius: 8px;
-            background: #1e1e1e;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            width: 90%;
-            max-width: 600px;
-        }
-        .countdown {
-            font-size: 1.8rem;
-            color: #76ff03;
-        }
-        .suggested-badge {
-            background-color: #ffeb3b;
-            color: #333;
-            padding: 0.5rem;
-            border-radius: 4px;
-            display: inline-block;
-            margin-top: 10px;
-        }
-        .new-badge {
-            background-color: #ff5722;
-            color: white;
-            padding: 0.3rem 0.7rem;
-            font-size: 0.8rem;
-            font-weight: bold;
-            border-radius: 4px;
-            display: inline-block;
-            margin-left: 10px;
-        }
-        #contact-form {
-            display: none;
-            margin: 1rem auto;
-            padding: 1.5rem;
-            border-radius: 8px;
-            background: #1e1e1e;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            width: 90%;
-            max-width: 600px;
-        }
-        #contact-form input, #contact-form textarea {
-            width: 100%;
-            margin-bottom: 1rem;
-            padding: 0.8rem;
-            border: 1px solid #444;
-            border-radius: 4px;
-            font-size: 1rem;
-            background: #222;
-            color: white;
-        }
-        #contact-form button {
+            margin-top: 1rem;
             padding: 0.8rem 1.5rem;
             background: #00796b;
             color: white;
@@ -86,6 +32,74 @@
             font-size: 1rem;
             cursor: pointer;
         }
+        header button:hover {
+            background: #00574b;
+        }
+        .event {
+            margin: 1rem auto;
+            padding: 1.5rem;
+            border-radius: 8px;
+            background: #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 600px;
+        }
+        .countdown {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+            color: #ffcc00;
+        }
+        .new-label {
+            background: red;
+            color: white;
+            padding: 2px 8px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+        .user-suggested {
+            font-size: 0.9rem;
+            color: #bbb;
+        }
+        #contact-form {
+            display: none;
+            margin: 1rem auto;
+            padding: 1.5rem;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            width: 90%;
+            max-width: 600px;
+        }
+        #contact-form h2 {
+            color: #00796b;
+        }
+        #contact-form label {
+            display: block;
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+        #contact-form input, #contact-form textarea {
+            width: 100%;
+            padding: 0.8rem;
+            margin-top: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        #contact-form button {
+            margin-top: 1rem;
+            padding: 0.8rem 1.5rem;
+            background: #00796b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        #contact-form button:hover {
+            background: #00574b;
+        }
     </style>
 </head>
 <body>
@@ -93,7 +107,7 @@
         <h1>Ereignis-Zeitrechner</h1>
         <button onclick="toggleContactForm()">Vorschlag für neues Ereignis</button>
         <div id="contact-form">
-            <h2>Neues Ereignis vorschlagen</h2>
+            <h2>Vorschlag für ein neues Ereignis</h2>
             <form action="https://formspree.io/f/mgvvpoap" method="POST">
                 <label for="event-name">Ereignisname:</label>
                 <input type="text" id="event-name" name="event-name" required>
@@ -103,6 +117,9 @@
 
                 <label for="event-time">Uhrzeit des Ereignisses:</label>
                 <input type="time" id="event-time" name="event-time" required>
+
+                <label for="comments">Weitere Kommentare:</label>
+                <textarea id="comments" name="comments" rows="4"></textarea>
 
                 <button type="submit">Absenden</button>
             </form>
@@ -115,9 +132,9 @@
         function getNextValentinstag() {
             const now = new Date();
             const year = now.getFullYear();
-            let valentinstag = new Date(`${year}-02-14T00:00:00`);
+            const valentinstag = new Date(year, 1, 14, 0, 0, 0);
             if (now > valentinstag) {
-                valentinstag = new Date(`${year + 1}-02-14T00:00:00`);
+                valentinstag.setFullYear(year + 1);
             }
             return valentinstag.toISOString();
         }
@@ -129,66 +146,47 @@
             { name: "Valentinstag", date: getNextValentinstag() },
             { name: "Halloween", date: "2025-10-31T00:00:00" },
             { name: "Tag der Deutschen Einheit", date: "2025-10-03T00:00:00" },
-            { name: "Schanzenfest Drachenlord", date: "2025-08-09T00:00:00", suggested: true, description: "Wir bauen die Schanze wieder auf!", addedDate: "2025-03-01" },
-            { name: "Mafest Welmlingen", date: "2025-05-01T11:00:00", suggested: true, addedDate: "2025-03-02" },
-            { name: "Schmutziger Dunschtig", date: "2025-05-18T00:00:00", suggested: true, addedDate: "2025-03-03" }
+            { name: "Schanzenfest Drachenlord", date: "2025-08-09T00:00:00", description: "Wir bauen die Schanze wieder auf!", userSuggested: true, new: true },
+            { name: "Mafest Welmlingen", date: "2025-05-01T11:00:00", userSuggested: true, new: true },
+            { name: "Schmutziger Dunschtig", date: "2026-02-12T00:00:00", userSuggested: true, new: true }
         ];
 
         function updateCountdowns() {
+            const now = new Date();
             const eventsContainer = document.getElementById("events");
             eventsContainer.innerHTML = "";
 
-            const now = new Date();
-
             events.forEach(event => {
                 const eventDate = new Date(event.date);
-                const timeDifference = eventDate - now;
+                const timeDiff = eventDate - now;
+                let countdownText = "Das Ereignis ist bereits eingetroffen!";
 
-                const eventElement = document.createElement("div");
-                eventElement.className = "event";
-
-                let newLabel = "";
-                if (event.addedDate) {
-                    const addedDate = new Date(event.addedDate);
-                    const daysSinceAdded = (now - addedDate) / (1000 * 60 * 60 * 24);
-                    if (daysSinceAdded < 5) {
-                        newLabel = '<span class="new-badge">Neu</span>';
-                    }
+                if (timeDiff > 0) {
+                    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                    countdownText = `Noch ${days} Tage`;
                 }
 
-                if (timeDifference > 0) {
-                    const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+                const newLabel = event.new && (now < new Date(eventDate.getTime() + (7 * 24 * 60 * 60 * 1000))) ? `<span class="new-label">Neu</span>` : "";
+                const userLabel = event.userSuggested ? "<p class='user-suggested'>Von Benutzer vorgeschlagen</p>" : "";
 
-                    eventElement.innerHTML = `
+                eventsContainer.innerHTML += `
+                    <div class="event">
                         <h2>${event.name} ${newLabel}</h2>
-                        ${event.suggested ? '<div class="suggested-badge">Von Benutzer vorgeschlagen</div>' : ''}
-                        <p class="countdown">Noch ${days} Tage, ${hours} Stunden, ${minutes} Minuten, ${seconds} Sekunden</p>
-                        ${event.description ? `<p>${event.description}</p>` : ''}
-                    `;
-                } else {
-                    if (event.name === "Valentinstag") {
-                        event.date = getNextValentinstag();
-                    }
-                    eventElement.innerHTML = `
-                        <h2>${event.name} ${newLabel}</h2>
-                        <p class="countdown">Das Ereignis ist bereits eingetroffen!</p>
-                    `;
-                }
-
-                eventsContainer.appendChild(eventElement);
+                        <p class="countdown">${countdownText}</p>
+                        ${event.description ? `<p>${event.description}</p>` : ""}
+                        ${userLabel}
+                    </div>
+                `;
             });
         }
 
         function toggleContactForm() {
-            const contactForm = document.getElementById("contact-form");
-            contactForm.style.display = contactForm.style.display === "none" ? "block" : "none";
+            const form = document.getElementById("contact-form");
+            form.style.display = form.style.display === "none" || form.style.display === "" ? "block" : "none";
         }
 
-        setInterval(updateCountdowns, 1000);
         updateCountdowns();
+        setInterval(updateCountdowns, 60000);
     </script>
 </body>
 </html>
