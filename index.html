@@ -9,21 +9,17 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #1e1e1e, #2c2c2c);
-            color: #fff;
+            background: #121212;
+            color: #ddd;
         }
         header {
-            background: #444;
+            background: #1e1e1e;
             color: white;
             padding: 2rem 1rem;
             text-align: center;
-        }
-        header h1 {
-            font-size: 2.5rem;
-            margin: 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         header button {
-            margin-top: 1rem;
             padding: 0.8rem 1.5rem;
             background: #00796b;
             color: white;
@@ -32,63 +28,60 @@
             font-size: 1rem;
             cursor: pointer;
         }
-        header button:hover {
-            background: #00574b;
-        }
         .event {
             margin: 1rem auto;
             padding: 1.5rem;
             border-radius: 8px;
-            background: #333;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background: #1e1e1e;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 90%;
             max-width: 600px;
-        }
-        .countdown {
-            font-size: 1.5rem;
-            margin: 1rem 0;
-            color: #ffcc00;
+            position: relative;
         }
         .new-label {
+            position: absolute;
+            top: 10px;
+            right: 10px;
             background: red;
             color: white;
-            padding: 2px 8px;
+            padding: 5px 10px;
             font-size: 0.8rem;
-            border-radius: 4px;
-            margin-left: 10px;
+            border-radius: 5px;
         }
-        .user-suggested {
-            font-size: 0.9rem;
-            color: #bbb;
+        .user-label {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: orange;
+            color: white;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            border-radius: 5px;
         }
         #contact-form {
             display: none;
             margin: 1rem auto;
             padding: 1.5rem;
             border-radius: 8px;
-            background: white;
-            color: #333;
+            background: #1e1e1e;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 90%;
             max-width: 600px;
         }
-        #contact-form h2 {
-            color: #00796b;
-        }
-        #contact-form label {
-            display: block;
-            margin-top: 1rem;
-            font-weight: bold;
+        #contact-form label, #contact-form h2 {
+            color: white;
         }
         #contact-form input, #contact-form textarea {
             width: 100%;
             padding: 0.8rem;
-            margin-top: 0.5rem;
-            border: 1px solid #ccc;
+            border: 1px solid #444;
             border-radius: 4px;
             font-size: 1rem;
+            background: #333;
+            color: white;
         }
         #contact-form button {
-            margin-top: 1rem;
             padding: 0.8rem 1.5rem;
             background: #00796b;
             color: white;
@@ -97,14 +90,12 @@
             font-size: 1rem;
             cursor: pointer;
         }
-        #contact-form button:hover {
-            background: #00574b;
-        }
     </style>
 </head>
 <body>
     <header>
         <h1>Ereignis-Zeitrechner</h1>
+        <p>Sieh dir an, wie viel Zeit bis Weihnachten, Ostern, Halloween und mehr bleibt!</p>
         <button onclick="toggleContactForm()">Vorschlag für neues Ereignis</button>
         <div id="contact-form">
             <h2>Vorschlag für ein neues Ereignis</h2>
@@ -129,16 +120,6 @@
     <div id="events"></div>
 
     <script>
-        function getNextValentinstag() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const valentinstag = new Date(year, 1, 14, 0, 0, 0);
-            if (now > valentinstag) {
-                valentinstag.setFullYear(year + 1);
-            }
-            return valentinstag.toISOString();
-        }
-
         const events = [
             { name: "Weihnachten", date: "2025-12-25T00:00:00" },
             { name: "Silvester", date: "2025-12-31T23:59:59" },
@@ -146,49 +127,74 @@
             { name: "Valentinstag", date: getNextValentinstag() },
             { name: "Halloween", date: "2025-10-31T00:00:00" },
             { name: "Tag der Deutschen Einheit", date: "2025-10-03T00:00:00" },
-            { name: "Schanzenfest Drachenlord", date: "2025-08-09T00:00:00", description: "Wir bauen die Schanze wieder auf!", userSuggested: true, new: true },
-            { name: "Maifest Welmlingen", date: "2025-05-01T11:00:00", userSuggested: true, new: true },
-            { name: "Schmutziger Dunschtig", date: "2026-02-12T00:00:00", userSuggested: true, new: true }
-
-{ name: "Nikolaus ", date: "2025-12-06T00:00:00", userSuggested: true new: true }
+            { name: "Schanzenfest Drachenlord", date: "2025-08-09T00:00:00", description: "Wir bauen die Schanze wieder auf!", userSuggested: true, isNew: true },
+            { name: "Mafest Welmlingen", date: "2025-05-01T11:00:00", userSuggested: true, isNew: true },
+            { name: "Schmutziger Dunschtig", date: "2026-02-12T00:00:00", userSuggested: true, isNew: true },
+            { name: "Nikolaus", date: "2025-12-06T00:00:00", userSuggested: true, isNew: true }
         ];
 
-        function updateCountdowns() {
+        function getNextValentinstag() {
             const now = new Date();
+            const valentinstag = new Date(now.getFullYear(), 1, 14);
+            if (now > valentinstag) {
+                valentinstag.setFullYear(now.getFullYear() + 1);
+            }
+            return valentinstag.toISOString();
+        }
+
+        function updateCountdowns() {
             const eventsContainer = document.getElementById("events");
             eventsContainer.innerHTML = "";
 
+            const now = new Date();
+            const thresholdDate = new Date();
+            thresholdDate.setDate(thresholdDate.getDate() - 3);
+
             events.forEach(event => {
                 const eventDate = new Date(event.date);
-                const timeDiff = eventDate - now;
-                let countdownText = "Das Ereignis ist bereits eingetroffen!";
+                const timeDifference = eventDate - now;
+                let eventElement = document.createElement("div");
+                eventElement.className = "event";
 
-                if (timeDiff > 0) {
-                    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-                    countdownText = `Noch ${days} Tage`;
+                let labels = "";
+                if (event.isNew && new Date(event.date) > thresholdDate) {
+                    labels += '<span class="new-label">Neu</span>';
+                }
+                if (event.userSuggested) {
+                    labels += '<span class="user-label">Von Benutzer vorgeschlagen</span>';
                 }
 
-                const newLabel = event.new && (now < new Date(eventDate.getTime() + (7 * 24 * 60 * 60 * 1000))) ? `<span class="new-label">Neu</span>` : "";
-                const userLabel = event.userSuggested ? "<p class='user-suggested'>Von Benutzer vorgeschlagen</p>" : "";
+                if (timeDifference > 0) {
+                    const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
 
-                eventsContainer.innerHTML += `
-                    <div class="event">
-                        <h2>${event.name} ${newLabel}</h2>
-                        <p class="countdown">${countdownText}</p>
+                    eventElement.innerHTML = `
+                        ${labels}
+                        <h2>${event.name}</h2>
+                        <p class="countdown">Noch ${days} Tage, ${hours} Stunden, ${minutes} Minuten, ${seconds} Sekunden</p>
                         ${event.description ? `<p>${event.description}</p>` : ""}
-                        ${userLabel}
-                    </div>
-                `;
+                    `;
+                } else {
+                    eventElement.innerHTML = `
+                        ${labels}
+                        <h2>${event.name}</h2>
+                        <p class="countdown">Das Ereignis ist bereits eingetroffen!</p>
+                    `;
+                }
+
+                eventsContainer.appendChild(eventElement);
             });
         }
 
         function toggleContactForm() {
-            const form = document.getElementById("contact-form");
-            form.style.display = form.style.display === "none" || form.style.display === "" ? "block" : "none";
+            let form = document.getElementById("contact-form");
+            form.style.display = form.style.display === "block" ? "none" : "block";
         }
 
+        setInterval(updateCountdowns, 1000);
         updateCountdowns();
-        setInterval(updateCountdowns, 60000);
     </script>
 </body>
 </html>
