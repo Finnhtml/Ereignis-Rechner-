@@ -17,7 +17,6 @@
             color: white;
             padding: 2rem 1rem;
             text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         header button {
             padding: 0.8rem 1.5rem;
@@ -50,36 +49,31 @@
             background: #f50057;
             color: white;
         }
-        #contact-form {
-            display: none;
-            margin: 1rem auto;
-            padding: 1.5rem;
-            border-radius: 8px;
-            background: #222;
-            width: 90%;
-            max-width: 600px;
+        #suggestion-form {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        #suggestion-form input, #suggestion-form button {
+            margin: 0.5rem;
+            padding: 0.5rem;
         }
     </style>
 </head>
 <body>
     <header>
         <h1>Ereignis-Zeitrechner</h1>
-        <button onclick="toggleContactForm()">Vorschlag für neues Ereignis</button>
-        <div id="contact-form">
-            <h2>Vorschlag für ein neues Ereignis</h2>
-            <form action="https://formspree.io/f/mgvvpoap" method="POST">
-                <label for="event-name">Ereignisname:</label>
-                <input type="text" id="event-name" name="event-name" required>
-                <label for="event-date">Datum des Ereignisses:</label>
-                <input type="date" id="event-date" name="event-date" required>
-                <label for="event-time">Uhrzeit des Ereignisses:</label>
-                <input type="time" id="event-time" name="event-time" required>
-                <button type="submit">Absenden</button>
-            </form>
-        </div>
+        <button onclick="toggleSuggestionForm()">Ereignis vorschlagen</button>
     </header>
 
     <div id="events"></div>
+
+    <div id="suggestion-form" style="display:none;">
+        <form action="https://formspree.io/f/mnqevyyr" method="POST">
+            <input type="text" name="event-name" placeholder="Ereignisname" required>
+            <input type="datetime-local" name="event-date" required>
+            <button type="submit">Hinzufügen</button>
+        </form>
+    </div>
 
     <script>
         function getNextValentinstag() {
@@ -97,8 +91,7 @@
             { name: "Ostern", date: "2025-04-20T00:00:00" },
             { name: "Valentinstag", date: getNextValentinstag() },
             { name: "Halloween", date: "2025-10-31T00:00:00" },
-            { name: "Tag der Deutschen Einheit", date: "2025-10-03T00:00:00" },
-            { name: "Schanzenfest Drachenlord", date: "2025-08-09T00:00:00", description: "Wir bauen die Schanze wieder auf!", userSuggested: true, isNew: true },
+            { name: "Schanzenfest Drachenlord", date: "2025-08-09T00:00:00", userSuggested: true, isNew: true },
             { name: "Mafest Welmlingen", date: "2025-05-01T11:00:00", userSuggested: true, isNew: true },
             { name: "Schmutziger Dunschtig", date: "2026-02-12T00:00:00", userSuggested: true, isNew: true },
             { name: "Nikolaus", date: "2025-12-06T00:00:00", userSuggested: true, isNew: true },
@@ -121,7 +114,8 @@
                 if (timeDifference > 0) {
                     const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
                     const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    countdownText = `Noch ${days} Tage, ${hours} Stunden`;
+                    const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+                    countdownText = `Noch ${days} Tage, ${hours} Stunden, ${minutes} Minuten`;
                 } else {
                     countdownText = "Das Ereignis ist bereits eingetroffen!";
                 }
@@ -129,7 +123,6 @@
                 eventElement.innerHTML = `
                     <h2>${event.name}</h2>
                     <p class="countdown">${countdownText}</p>
-                    ${event.description ? `<p>${event.description}</p>` : ""}
                     ${event.userSuggested ? '<span class="tag">Von Benutzer vorgeschlagen</span>' : ""}
                     ${event.isNew ? '<span class="tag">Neu</span>' : ""}
                 `;
@@ -138,24 +131,21 @@
             });
         }
 
-        function toggleContactForm() {
-            const contactForm = document.getElementById("contact-form");
-            contactForm.style.display = contactForm.style.display === "none" || contactForm.style.display === "" ? "block" : "none";
+        function removeNewLabels() {
+            setTimeout(() => {
+                events.forEach(event => event.isNew = false);
+                updateCountdowns();
+            }, 5 * 24 * 60 * 60 * 1000);
         }
 
-        function removeNewLabels() {
-            const currentTime = new Date();
-            events.forEach(event => {
-                const eventDate = new Date(event.date);
-                if ((eventDate - currentTime) / (1000 * 60 * 60 * 24) > 7) {
-                    event.isNew = false;
-                }
-            });
+        function toggleSuggestionForm() {
+            const form = document.getElementById("suggestion-form");
+            form.style.display = form.style.display === "none" ? "block" : "none";
         }
 
         setInterval(updateCountdowns, 1000);
         updateCountdowns();
-        setTimeout(removeNewLabels, 7 * 24 * 60 * 60 * 1000);
+        removeNewLabels();
     </script>
 </body>
 </html>
