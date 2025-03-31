@@ -53,27 +53,38 @@
             text-align: center;
             margin-top: 1rem;
         }
-        #suggestion-form input, #suggestion-form button {
-            margin: 0.5rem;
+        #suggestion-form input[type="text"],
+        #suggestion-form input[type="datetime-local"],
+        #suggestion-form textarea {
+            width: 90%;
+            display: block;
+            margin: 0.5rem auto;
+        }
+
+        #suggestion-form button {
+            margin: 0.5rem auto;
             padding: 0.5rem;
+            width: auto; /* Button-Breite auf automatische Anpassung zurücksetzen */
+            display: block;
         }
     </style>
 </head>
 <body>
     <header>
         <h1>Ereignis-Zeitrechner</h1>
-        <button onclick="toggleSuggestionForm()">(Ereignis vorschlagen) !!!Derzeit nicht benutzbar!!!</button>
+        <button id="toggleFormButton">Ereignis vorschlagen</button>
+        <div id="suggestion-form" style="display:none;">
+            <form id="mein-formular" action="https://formspree.io/f/xeoalwqb" method="POST">
+                <input type="text" name="event-name" placeholder="Ereignisname" required>
+                <input type="datetime-local" name="event-date" required>
+                <textarea name="event-description" placeholder="Ereignisbeschreibung"></textarea>
+                <button type="submit">Vorschlagen</button>
+                <p id="formular-status"></p>
+            </form>
+        </div>
     </header>
 
     <div id="events"></div>
-
-    <div id="suggestion-form" style="display:none;">
-        <form action="https://formspree.io/f/mnqevyyr" method="POST">
-            <input type="text" name="event-name" placeholder="Ereignisname" required>
-            <input type="datetime-local" name="event-date" required>
-            <button type="submit">Hinzufügen</button>
-        </form>
-    </div>
 
     <script>
         function getNextValentinstag() {
@@ -91,11 +102,11 @@
             { name: "Ostern", date: "2025-04-20T00:00:00" },
             { name: "Valentinstag", date: getNextValentinstag() },
             { name: "Halloween", date: "2025-10-31T00:00:00" },
-            { name: "Schanzenfest Drachenlord", date: "2025-08-09T00:00:00", userSuggested: true, isNew: true },
-            { name: "Mafest Welmlingen", date: "2025-05-01T11:00:00", userSuggested: true, isNew: true },
-            { name: "Schmutziger Dunschtig", date: "2026-02-12T00:00:00", userSuggested: true, isNew: true },
-            { name: "Nikolaus", date: "2025-12-06T00:00:00", userSuggested: true, isNew: true },
-            { name: "Patricia Kelly", date: "2025-10-11T19:00:00", userSuggested: true, isNew: true }
+            { name: "Schanzenfest Drachenlord", date: "2025-08-09T00:00:00", userSuggested: true },
+            { name: "Maifest Welmlingen", date: "2025-05-01T11:00:00", userSuggested: true },
+            { name: "Schmutziger Dunschtig", date: "2026-02-12T00:00:00", userSuggested: true },
+            { name: "Nikolaus", date: "2025-12-06T00:00:00", userSuggested: true },
+            { name: "Patricia Kelly", date: "2025-10-11T19:00:00", userSuggested: true }
         ];
 
         function updateCountdowns() {
@@ -124,18 +135,10 @@
                     <h2>${event.name}</h2>
                     <p class="countdown">${countdownText}</p>
                     ${event.userSuggested ? '<span class="tag">Von Benutzer vorgeschlagen</span>' : ""}
-                    ${event.isNew ? '<span class="tag">Neu</span>' : ""}
                 `;
 
                 eventsContainer.appendChild(eventElement);
             });
-        }
-
-        function removeNewLabels() {
-            setTimeout(() => {
-                events.forEach(event => event.isNew = false);
-                updateCountdowns();
-            }, 5 * 24 * 60 * 60 * 1000);
         }
 
         function toggleSuggestionForm() {
@@ -143,9 +146,45 @@
             form.style.display = form.style.display === "none" ? "block" : "none";
         }
 
+        document.getElementById("toggleFormButton").addEventListener("click", function() {
+            toggleSuggestionForm();
+        });
+
+        // Formspree AJAX-Code
+        const formular = document.getElementById('mein-formular');
+        const formularStatus = document.getElementById('formular-status');
+
+        formular.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(formular);
+
+            try {
+                const response = await fetch(formular.action, {
+                    method: formular.method,
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    formularStatus.textContent = 'Vielen Dank für deinen Vorschlag!';
+                    formular.reset();
+                } else {
+                    const errorData = await response.json();
+                    if (errorData.errors) {
+                        formularStatus.textContent = errorData.errors.map(error => error.message).join(', ');
+                    } else {
+                        formularStatus.textContent = 'Es gab ein Problem beim Senden deiner Nachricht.';
+                    }
+                }
+            } catch (error) {
+                formularStatus.textContent = 'Es gab ein Problem beim Senden deiner Nachricht.';
+            }
+        });
+
         setInterval(updateCountdowns, 1000);
         updateCountdowns();
-        removeNewLabels();
     </script>
 </body>
 </html>
