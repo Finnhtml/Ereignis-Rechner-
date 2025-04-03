@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ereignis-Zeitrechner</title>
+    <script src="https://www.google.com/recaptcha/enterprise.js" async defer></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -64,7 +65,7 @@
         #suggestion-form button {
             margin: 0.5rem auto;
             padding: 0.5rem;
-            width: auto; /* Button-Breite auf automatische Anpassung zurücksetzen */
+            width: auto;
             display: block;
         }
     </style>
@@ -78,6 +79,7 @@
                 <input type="text" name="event-name" placeholder="Ereignisname" required>
                 <input type="datetime-local" name="event-date" required>
                 <textarea name="event-description" placeholder="Ereignisbeschreibung"></textarea>
+                <div class="g-recaptcha" data-sitekey="6LcxhAUrAAAAAIMDyCxwamO3Fp7DcZQOdNyNImCh" data-action="submit"></div>
                 <button type="submit">Vorschlagen</button>
                 <p id="formular-status"></p>
             </form>
@@ -150,7 +152,6 @@
             toggleSuggestionForm();
         });
 
-        // Formspree AJAX-Code
         const formular = document.getElementById('mein-formular');
         const formularStatus = document.getElementById('formular-status');
 
