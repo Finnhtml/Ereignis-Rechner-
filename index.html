@@ -95,6 +95,16 @@
             width: 90%;
             max-width: 800px;
         }
+        button {
+            padding: 0.8rem 1.5rem;
+            background: #00796b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -115,10 +125,12 @@
             <button data-category="alle">Alle</button>
             <button data-category="Feiertage">Feiertage</button>
             <button data-category="Benutzerdefiniert">Benutzerdefiniert</button>
+            <button id="add-custom-event">Eigenes Ereignis hinzufügen</button>
         </div>
     </header>
 
     <div id="events"></div>
+    <button onclick="window.location.href='custom-events.html'">Meine benutzerdefinierten Ereignisse</button>
 
     <script>
         function getNextValentinstag() {
@@ -176,9 +188,10 @@
             { name: "Totensonntag", date: "2025-11-23T00:00:00", yearly: true, category: "Feiertage" }
         ];
 
+        let customEvents = JSON.parse(localStorage.getItem('customEvents')) || [];
         let currentCategory = "alle";
 
-        function updateCountdowns(searchTerm = "") {
+        function updateStandardEvents(searchTerm = "") {
             const eventsContainer = document.getElementById("events");
             eventsContainer.innerHTML = "";
 
@@ -222,6 +235,10 @@
             });
         }
 
+        function updateAllEvents(searchTerm = "") {
+            updateStandardEvents(searchTerm);
+        }
+
         function toggleSuggestionForm() {
             const form = document.getElementById("suggestion-form");
             form.style.display = form.style.display === "none" ? "block" : "none";
@@ -232,14 +249,13 @@
         });
 
         document.getElementById("search-input").addEventListener("input", function() {
-            const searchTerm = this.value;
-            updateCountdowns(searchTerm);
+            updateAllEvents(this.value);
         });
 
         document.querySelectorAll("#category-menu button").forEach(button => {
             button.addEventListener("click", function() {
                 currentCategory = this.dataset.category;
-                updateCountdowns(document.getElementById("search-input").value);
+                updateAllEvents(document.getElementById("search-input").value);
             });
         });
 
@@ -275,8 +291,8 @@
             }
         });
 
-        setInterval(() => updateCountdowns(document.getElementById("search-input").value), 1000);
-        updateCountdowns();
+        setInterval(() => updateAllEvents(document.getElementById("search-input").value), 1000);
+        updateAllEvents();
     </script>
 </body>
 </html>
