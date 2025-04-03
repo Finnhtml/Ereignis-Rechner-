@@ -11,12 +11,16 @@
             padding: 0;
             background: #121212;
             color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         header {
             background: #1e1e1e;
             color: white;
             padding: 2rem 1rem;
             text-align: center;
+            width: 100%;
         }
         header button {
             padding: 0.8rem 1.5rem;
@@ -67,6 +71,30 @@
             width: auto;
             display: block;
         }
+        #search-input {
+            width: 90%;
+            margin: 1rem auto;
+            display: block;
+            padding: 0.5rem;
+        }
+        #category-menu {
+            margin-top: 1rem;
+            text-align: center;
+            width: 100%;
+        }
+        #category-menu button {
+            padding: 0.5rem 1rem;
+            margin: 0 0.5rem;
+            background: #00796b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #events {
+            width: 90%;
+            max-width: 800px;
+        }
     </style>
 </head>
 <body>
@@ -81,6 +109,12 @@
                 <button type="submit">Vorschlagen</button>
                 <p id="formular-status"></p>
             </form>
+        </div>
+        <input type="text" id="search-input" placeholder="Ereignis suchen...">
+        <div id="category-menu">
+            <button data-category="alle">Alle</button>
+            <button data-category="Feiertage">Feiertage</button>
+            <button data-category="Benutzerdefiniert">Benutzerdefiniert</button>
         </div>
     </header>
 
@@ -97,26 +131,73 @@
         }
 
         const events = [
-            { name: "Weihnachten", date: "2025-12-25T00:00:00" },
-            { name: "Silvester", date: "2025-12-31T23:59:59" },
-            { name: "Ostern", date: "2025-04-20T00:00:00" },
-            { name: "Valentinstag", date: getNextValentinstag() },
-            { name: "Halloween", date: "2025-10-31T00:00:00" },
-            { name: "Schanzenfest Drachenlord", date: "2025-08-09T00:00:00", userSuggested: true },
-            { name: "Maifest Welmlingen", date: "2025-05-01T11:00:00", userSuggested: true },
-            { name: "Schmutziger Dunschtig", date: "2026-02-12T00:00:00", userSuggested: true },
-            { name: "Nikolaus", date: "2025-12-06T00:00:00", userSuggested: true },
-            { name: "Patricia Kelly", date: "2025-10-11T19:00:00", userSuggested: true }
+            { name: "Weihnachten", date: "2025-12-25T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Silvester", date: "2025-12-31T23:59:59", yearly: true, category: "Feiertage" },
+            { name: "Ostern", date: "2025-04-20T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Valentinstag", date: getNextValentinstag(), yearly: true, category: "Feiertage" },
+            { name: "Halloween", date: "2025-10-31T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Schanzenfest Drachenlord", date: "2025-08-09T00:00:00", userSuggested: true, category: "Benutzerdefiniert" },
+            { name: "Maifest Welmlingen", date: "2025-05-01T11:00:00", userSuggested: true, category: "Benutzerdefiniert" },
+            { name: "Schmutziger Dunschtig", date: "2026-02-12T00:00:00", userSuggested: true, category: "Benutzerdefiniert" },
+            { name: "Nikolaus", date: "2025-12-06T00:00:00", userSuggested: true, category: "Benutzerdefiniert" },
+            { name: "Patricia Kelly", date: "2025-10-11T19:00:00", userSuggested: true, category: "Benutzerdefiniert" },
+            { name: "Neujahr", date: "2026-01-01T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Tag der Deutschen Einheit", date: "2025-10-03T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Karneval", date: "2026-02-15T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Frühlingsanfang", date: "2025-03-20T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Sommersonnenwende", date: "2025-06-21T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Herbstanfang", date: "2025-09-22T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Wintersonnenwende", date: "2025-12-21T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Muttertag", date: "2025-05-11T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Vatertag", date: "2025-05-29T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Erster Advent", date: "2025-11-30T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Zweiter Advent", date: "2025-12-07T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Dritter Advent", date: "2025-12-14T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Vierter Advent", date: "2025-12-21T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Heiligabend", date: "2025-12-24T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Erster Weihnachtsfeiertag", date: "2025-12-25T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Zweiter Weihnachtsfeiertag", date: "2025-12-26T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Rosenmontag", date: "2026-02-23T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Aschermittwoch", date: "2026-02-25T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Palmsonntag", date: "2025-04-13T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Gründonnerstag", date: "2025-04-17T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Karfreitag", date: "2025-04-18T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Ostersonntag", date: "2025-04-20T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Ostermontag", date: "2025-04-21T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Tag der Arbeit", date: "2025-05-01T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Christi Himmelfahrt", date: "2025-05-29T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Pfingstsonntag", date: "2025-06-08T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Pfingstmontag", date: "2025-06-09T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Fronleichnam", date: "2025-06-19T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Reformationstag", date: "2025-10-31T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Allerheiligen", date: "2025-11-01T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Buß- und Bettag", date: "2025-11-19T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Volkstrauertag", date: "2025-11-16T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Totensonntag", date: "2025-11-23T00:00:00", yearly: true, category: "Feiertage" }
         ];
 
-        function updateCountdowns() {
+        let currentCategory = "alle";
+
+        function updateCountdowns(searchTerm = "") {
             const eventsContainer = document.getElementById("events");
             eventsContainer.innerHTML = "";
 
-            events.forEach(event => {
-                const eventDate = new Date(event.date);
+            const filteredEvents = events.filter(event => {
+                const searchMatch = event.name.toLowerCase().includes(searchTerm.toLowerCase());
+                const categoryMatch = currentCategory === "alle" || event.category === currentCategory;
+                return searchMatch && categoryMatch;
+            });
+
+            filteredEvents.forEach(event => {
+                let eventDate = new Date(event.date);
                 const now = new Date();
-                const timeDifference = eventDate - now;
+                let timeDifference = eventDate - now;
+
+                if(timeDifference < 0 && event.yearly){
+                    eventDate.setFullYear(eventDate.getFullYear() + 1);
+                    timeDifference = eventDate - now;
+                    event.date = eventDate.toISOString();
+                }
 
                 const eventElement = document.createElement("div");
                 eventElement.className = "event";
@@ -148,6 +229,18 @@
 
         document.getElementById("toggleFormButton").addEventListener("click", function() {
             toggleSuggestionForm();
+        });
+
+        document.getElementById("search-input").addEventListener("input", function() {
+            const searchTerm = this.value;
+            updateCountdowns(searchTerm);
+        });
+
+        document.querySelectorAll("#category-menu button").forEach(button => {
+            button.addEventListener("click", function() {
+                currentCategory = this.dataset.category;
+                updateCountdowns(document.getElementById("search-input").value);
+            });
         });
 
         const formular = document.getElementById('mein-formular');
@@ -182,7 +275,7 @@
             }
         });
 
-        setInterval(updateCountdowns, 1000);
+        setInterval(() => updateCountdowns(document.getElementById("search-input").value), 1000);
         updateCountdowns();
     </script>
 </body>
