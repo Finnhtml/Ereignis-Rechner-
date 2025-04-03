@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benutzerdefinierte Ereignisse</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #121212;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .event {
+            margin: 1rem auto;
+            padding: 1.5rem;
+            border-radius: 8px;
+            background: #222;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 600px;
+        }
+        .countdown {
+            font-size: 1.5rem;
+            color: #76ff03;
+        }
+        .tag {
+            display: inline-block;
+            padding: 0.3rem 0.6rem;
+            margin: 0.3rem;
+            font-size: 0.9rem;
+            border-radius: 12px;
+            background: #f50057;
+            color: white;
+        }
+        #add-custom-event {
+            padding: 0.8rem 1.5rem;
+            background: #00796b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        #add-event-form {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #add-event-form input[type="text"],
+        #add-event-form input[type="datetime-local"] {
+            width: 90%;
+            margin: 0.5rem auto;
+            display: block;
+            padding: 0.5rem;
+        }
+
+        #submit-event-button {
+            padding: 0.8rem 1.5rem;
+            background: #00796b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .delete-event-button {
+            background: #f50057;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button {
+            padding: 0.8rem 1.5rem;
+            background: #00796b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="custom-events"></div>
+    <button id="add-custom-event">Eigenes Ereignis hinzufügen</button>
+    <div id="add-event-form" style="display: none;">
+        <input type="text" id="event-name-input" placeholder="Ereignisname" required>
+        <input type="datetime-local" id="event-date-input" required>
+        <button id="submit-event-button">Hinzufügen</button>
+    </div>
+    <button onclick="window.location.href='index.html'">Zurück zur Startseite</button>
+    <script>
+        let customEvents = JSON.parse(localStorage.getItem('customEvents')) || [];
+
+        function updateCustomEvents() {
+            const customEventsContainer = document.getElementById("custom-events");
+            customEventsContainer.innerHTML = "";
+
+            customEvents.forEach((event, index) => {
+                let eventDate = new Date(event.date);
+                const now = new Date();
+                let timeDifference = eventDate - now;
+
+                if(timeDifference < 0 && event.yearly){
+                    eventDate.setFullYear(eventDate.getFullYear() + 1);
+                    timeDifference = eventDate - now;
+                    event.date = eventDate.toISOString();
+                }
+
+                const eventElement = document.createElement("div");
+                eventElement.className = "event";
+
+                let countdownText = "";
+                if (timeDifference > 0) {
+                    const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+                    countdownText = `Noch ${days} Tage, ${hours} Stunden, ${minutes} Minuten`;
+                } else {
+                    countdownText = "Das Ereignis ist bereits eingetroffen!";
+                }
+
+                eventElement.innerHTML = `
+                    <h2>${event.name}</h2>
+                    <p class="countdown">${countdownText}</p>
+                    ${event.userSuggested ? '<span class="tag">Von Benutzer vorgeschlagen</span>' : ""}
+                    <button class="delete-event-button" data-index="${index}">Löschen</button>
+                `;
+
+                customEventsContainer.appendChild(eventElement);
+
+                // Event Listener für den Löschen-Button innerhalb der forEach-Schleife hinzufügen
+                const deleteButton = eventElement.querySelector(".delete-event-button");
+                deleteButton.addEventListener("click", function() {
+                    const index = parseInt(this.dataset.index);
+                    customEvents.splice(index, 1);
+                    localStorage.setItem('customEvents', JSON.stringify(customEvents));
+                    updateCustomEvents();
+                });
+            });
+        }
+
+        function addCustomEvent() {
+            const form = document.getElementById("add-event-form");
+            form.style.display = "block";
+
+            document.getElementById("submit-event-button").addEventListener("click", function() {
+                const eventName = document.getElementById("event-name-input").value;
+                const eventDate = document.getElementById("event-date-input").value;
+
+                if (eventName && eventDate) {
+                    customEvents.push({
+                        name: eventName,
+                        date: eventDate,
+                        userSuggested: true,
+                        category: "Benutzerdefiniert"
+                    });
+                    localStorage.setItem('customEvents', JSON.stringify(customEvents));
+                    updateCustomEvents();
+                    form.style.display = "none";
+                }
+            });
+        }
+
+        document.getElementById("add-custom-event").addEventListener("click", addCustomEvent);
+
+        setInterval(updateCustomEvents, 1000);
+        updateCustomEvents();
+    </script>
+</body>
+</html>
