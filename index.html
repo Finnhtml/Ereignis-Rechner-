@@ -185,7 +185,8 @@
             { name: "Allerheiligen", date: "2025-11-01T00:00:00", yearly: true, category: "Feiertage" },
             { name: "Buß- und Bettag", date: "2025-11-19T00:00:00", yearly: true, category: "Feiertage" },
             { name: "Volkstrauertag", date: "2025-11-16T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Totensonntag", date: "2025-11-23T00:00:00", yearly: true, category: "Feiertage" }
+            { name: "Totensonntag", date: "2025-11-23T00:00:00", yearly: true, category: "Feiertage" },
+            { name: "Masters of Dirt 2026", date: "2026-02-14T19:30:00", userSuggested: true, category: "Benutzerdefiniert" },
         ];
 
         let customEvents = JSON.parse(localStorage.getItem('customEvents')) || [];
@@ -236,7 +237,49 @@
         }
 
         function updateAllEvents(searchTerm = "") {
-            updateStandardEvents(searchTerm);
+            const eventsContainer = document.getElementById("events");
+            eventsContainer.innerHTML = "";
+
+            const allEvents = [...events, ...customEvents]; // Fügt benutzerdefinierte Ereignisse hinzu
+
+            const filteredEvents = allEvents.filter(event => {
+                const searchMatch = event.name.toLowerCase().includes(searchTerm.toLowerCase());
+                const categoryMatch = currentCategory === "alle" || event.category === currentCategory;
+                return searchMatch && categoryMatch;
+            });
+
+            filteredEvents.forEach(event => {
+                let eventDate = new Date(event.date);
+                const now = new Date();
+                let timeDifference = eventDate - now;
+
+                if(timeDifference < 0 && event.yearly){
+                    eventDate.setFullYear(eventDate.getFullYear() + 1);
+                    timeDifference = eventDate - now;
+                    event.date = eventDate.toISOString();
+                }
+
+                const eventElement = document.createElement("div");
+                eventElement.className = "event";
+
+                let countdownText = "";
+                if (timeDifference > 0) {
+                    const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+                    countdownText = `Noch ${days} Tage, ${hours} Stunden, ${minutes} Minuten`;
+                } else {
+                    countdownText = "Das Ereignis ist bereits eingetroffen!";
+                }
+
+                eventElement.innerHTML = `
+                    <h2>${event.name}</h2>
+                    <p class="countdown">${countdownText}</p>
+                    ${event.userSuggested ? '<span class="tag">Von Benutzer vorgeschlagen</span>' : ""}
+                `;
+
+                eventsContainer.appendChild(eventElement);
+            });
         }
 
         function toggleSuggestionForm() {
