@@ -63,6 +63,14 @@
             width: 90%;
             display: block;
             margin: 0.5rem auto;
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background-color: #333;
+            color: white;
+        }
+        #suggestion-form input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
         }
 
         #suggestion-form button {
@@ -76,6 +84,10 @@
             margin: 1rem auto;
             display: block;
             padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background-color: #333;
+            color: white;
         }
         #category-menu {
             margin-top: 1rem;
@@ -90,10 +102,15 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #category-menu button:hover {
+            background-color: #005a4e;
         }
         #events {
             width: 90%;
             max-width: 800px;
+            min-height: 100px; /* To prevent layout jumps when loading */
         }
         button {
             padding: 0.8rem 1.5rem;
@@ -104,6 +121,45 @@
             font-size: 1rem;
             cursor: pointer;
             margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #005a4e;
+        }
+
+        /* Loading Spinner */
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #00796b;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none; /* Hidden by default */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Description details styling */
+        details {
+            margin-top: 0.5rem;
+            background-color: #2a2a2a;
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+        }
+        summary {
+            cursor: pointer;
+            outline: none;
+            font-weight: bold;
+        }
+        details p {
+            margin-top: 0.5rem;
+            font-size: 0.9em;
+            color: #ccc;
         }
     </style>
 </head>
@@ -129,159 +185,376 @@
         </div>
     </header>
 
+    <div id="loading-spinner" class="loader"></div>
     <div id="events"></div>
     <button onclick="window.location.href='custom-events.html'">Meine benutzerdefinierten Ereignisse</button>
 
     <script>
-        function getNextValentinstag() {
+        // Helper function to get next occurrence of a yearly event
+        function getNextYearlyDate(month, day, hour = 0, minute = 0, second = 0) {
             let year = new Date().getFullYear();
-            let valentinstag = new Date(`${year}-02-14T00:00:00`);
-            if (valentinstag < new Date()) {
-                valentinstag = new Date(`${year + 1}-02-14T00:00:00`);
+            // Create date in local time, then adjust to UTC for consistency in calculations
+            let date = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+            if (date < new Date()) { // Compare with current local time
+                date.setUTCFullYear(year + 1);
             }
-            return valentinstag.toISOString();
+            return date.toISOString();
         }
 
+        // Function to calculate Easter Sunday for a given year (using Meeus/Jones/Butcher algorithm)
+        function getEasterSunday(year) {
+            const a = year % 19;
+            const b = Math.floor(year / 100);
+            const c = year % 100;
+            const d = Math.floor(b / 4);
+            const e = b % 4;
+            const f = Math.floor((b + 8) / 25);
+            const g = Math.floor((b - f + 1) / 3);
+            const h = (19 * a + b - d - g + 15) % 30;
+            const i = Math.floor(c / 4);
+            const k = c % 4;
+            const l = (32 + 2 * e + 2 * i - h - k) % 7;
+            const m = Math.floor((a + 11 * h + 22 * l) / 451);
+            const month = Math.floor((h + l - 7 * m + 114) / 31);
+            const day = ((h + l - 7 * m + 114) % 31) + 1;
+            return new Date(Date.UTC(year, month - 1, day, 0, 0, 0)); // Return in UTC
+        }
+
+        function getNextEasterSunday() {
+            let year = new Date().getFullYear();
+            let easter = getEasterSunday(year);
+            if (easter < new Date()) {
+                easter = getEasterSunday(year + 1);
+            }
+            return easter.toISOString();
+        }
+
+        function getNextHolidayFromEaster(daysOffset) {
+            let year = new Date().getFullYear();
+            let easter = getEasterSunday(year); // Easter is calculated in UTC
+            let holiday = new Date(easter.getTime() + daysOffset * 24 * 60 * 60 * 1000); // Add offset in milliseconds
+            if (holiday < new Date()) { // Compare with current local time
+                year++;
+                easter = getEasterSunday(year);
+                holiday = new Date(easter.getTime() + daysOffset * 24 * 60 * 60 * 1000);
+            }
+            return holiday.toISOString();
+        }
+
+        function getNextCarnivalMonday() {
+            return getNextHolidayFromEaster(-48); // 48 Tage vor Ostersonntag
+        }
+
+        function getNextAshWednesday() {
+            return getNextHolidayFromEaster(-47); // 47 Tage vor Ostersonntag
+        }
+        
+        function getNextPalmSunday() {
+            return getNextHolidayFromEaster(-7); // 7 Tage vor Ostersonntag
+        }
+
+        function getNextMaundyThursday() {
+            return getNextHolidayFromEaster(-3); // 3 Tage vor Ostersonntag
+        }
+
+        function getNextGoodFriday() {
+            return getNextHolidayFromEaster(-2); // 2 Tage vor Ostersonntag
+        }
+
+        function getNextEasterMonday() {
+            return getNextHolidayFromEaster(1); // 1 Tag nach Ostersonntag
+        }
+
+        function getNextAscensionDay() {
+            return getNextHolidayFromEaster(39); // 39 Tage nach Ostersonntag
+        }
+
+        function getNextPentecostSunday() {
+            return getNextHolidayFromEaster(49); // 49 Tage nach Ostersonntag
+        }
+
+        function getNextPentecostMonday() {
+            return getNextHolidayFromEaster(50); // 50 Tage nach Ostersonntag
+        }
+
+        function getNextCorpusChristi() {
+            return getNextHolidayFromEaster(60); // 60 Tage nach Ostersonntag
+        }
+
+        // Function to determine Advent Sundays
+        function getAdventSunday(year, adventNumber) {
+            // Christmas (Dec 25th) of the given year in UTC
+            const christmas = new Date(Date.UTC(year, 11, 25)); 
+            let date = new Date(christmas);
+            // Calculate the 4th Advent. Sunday's UTC day is 0.
+            // (christmas.getUTCDay() + (7 - adventNumber * 7)) % 7 calculates days to subtract
+            // to get to the correct Sunday in relation to Christmas Day's weekday.
+            date.setUTCDate(christmas.getUTCDate() - (christmas.getUTCDay() + (7 - (4 - adventNumber + 1) * 7)) % 7);
+            
+            // Adjust if the Advent Sunday for the *current* year has already passed based on *local* time
+            if (date < new Date() && new Date().getFullYear() === year) {
+                 date = getAdventSunday(year + 1, adventNumber);
+            }
+            return date.toISOString();
+        }
+
+        // Helper to get next Mother's Day (2nd Sunday in May)
+        function getNextMothersDay() {
+            let year = new Date().getFullYear();
+            let date = new Date(year, 4, 1); // May 1st of current year (local time)
+            let firstSundayInMay = new Date(date.setDate(1 + (7 - date.getDay()) % 7)); // Get first Sunday in May
+            let mothersDay = new Date(firstSundayInMay.getTime() + 7 * 24 * 60 * 60 * 1000); // Add 7 days for second Sunday
+
+            if (mothersDay < new Date()) {
+                year++;
+                date = new Date(year, 4, 1);
+                firstSundayInMay = new Date(date.setDate(1 + (7 - date.getDay()) % 7));
+                mothersDay = new Date(firstSundayInMay.getTime() + 7 * 24 * 60 * 60 * 1000);
+            }
+            return mothersDay.toISOString();
+        }
+
+        // Helper to get next Volkstrauertag (2nd Sunday before 1st Advent)
+        function getNextVolkstrauertag() {
+            let year = new Date().getFullYear();
+            let firstAdvent = new Date(getAdventSunday(year, 1));
+            let volkstrauertag = new Date(firstAdvent.getTime() - 2 * 7 * 24 * 60 * 60 * 1000); // 2 weeks before 1st Advent
+
+            if (volkstrauertag < new Date()) {
+                year++;
+                firstAdvent = new Date(getAdventSunday(year, 1));
+                volkstrauertag = new Date(firstAdvent.getTime() - 2 * 7 * 24 * 60 * 60 * 1000);
+            }
+            return volkstrauertag.toISOString();
+        }
+
+        // Helper to get next Totensonntag (Last Sunday before 1st Advent)
+        function getNextTotensonntag() {
+            let year = new Date().getFullYear();
+            let firstAdvent = new Date(getAdventSunday(year, 1));
+            let totensonntag = new Date(firstAdvent.getTime() - 7 * 24 * 60 * 60 * 1000); // 1 week before 1st Advent
+
+            if (totensonntag < new Date()) {
+                year++;
+                firstAdvent = new Date(getAdventSunday(year, 1));
+                totensonntag = new Date(firstAdvent.getTime() - 7 * 24 * 60 * 60 * 1000);
+            }
+            return totensonntag.toISOString();
+        }
+
+
         const events = [
-            { name: "Weihnachten", date: "2025-12-25T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Silvester", date: "2025-12-31T23:59:59", yearly: true, category: "Feiertage" },
-            { name: "Ostern", date: "2025-04-20T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Valentinstag", date: getNextValentinstag(), yearly: true, category: "Feiertage" },
-            { name: "Halloween", date: "2025-10-31T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Schanzenfest Drachenlord", date: "2025-08-09T00:00:00", userSuggested: true, category: "Benutzerdefiniert" },
-            { name: "Maifest Welmlingen", date: "2025-05-01T11:00:00", userSuggested: true, category: "Benutzerdefiniert" },
-            { name: "Schmutziger Dunschtig", date: "2026-02-12T00:00:00", userSuggested: true, category: "Benutzerdefiniert" },
-            { name: "Nikolaus", date: "2025-12-06T00:00:00", userSuggested: true, category: "Benutzerdefiniert" },
-            { name: "Patricia Kelly", date: "2025-10-11T19:00:00", userSuggested: true, category: "Benutzerdefiniert" },
-            { name: "Neujahr", date: "2026-01-01T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Tag der Deutschen Einheit", date: "2025-10-03T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Karneval", date: "2026-02-15T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Frühlingsanfang", date: "2025-03-20T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Sommersonnenwende", date: "2025-06-21T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Herbstanfang", date: "2025-09-22T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Wintersonnenwende", date: "2025-12-21T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Muttertag", date: "2025-05-11T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Vatertag", date: "2025-05-29T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Erster Advent", date: "2025-11-30T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Zweiter Advent", date: "2025-12-07T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Dritter Advent", date: "2025-12-14T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Vierter Advent", date: "2025-12-21T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Heiligabend", date: "2025-12-24T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Erster Weihnachtsfeiertag", date: "2025-12-25T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Zweiter Weihnachtsfeiertag", date: "2025-12-26T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Rosenmontag", date: "2026-02-23T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Aschermittwoch", date: "2026-02-25T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Palmsonntag", date: "2025-04-13T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Gründonnerstag", date: "2025-04-17T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Karfreitag", date: "2025-04-18T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Ostersonntag", date: "2025-04-20T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Ostermontag", date: "2025-04-21T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Tag der Arbeit", date: "2025-05-01T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Christi Himmelfahrt", date: "2025-05-29T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Pfingstsonntag", date: "2025-06-08T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Pfingstmontag", date: "2025-06-09T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Fronleichnam", date: "2025-06-19T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Reformationstag", date: "2025-10-31T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Allerheiligen", date: "2025-11-01T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Buß- und Bettag", date: "2025-11-19T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Volkstrauertag", date: "2025-11-16T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Totensonntag", date: "2025-11-23T00:00:00", yearly: true, category: "Feiertage" },
-            { name: "Masters of Dirt 2026", date: "2026-02-14T19:30:00", userSuggested: true, category: "Benutzerdefiniert" },
-            { name: "Sommerferien Baden-Württemberg", date: "2025-07-31T00:00:00", yearly: true, category: "Feiertage", description: "Sommerferien in Baden-Württemberg vom 31. Juli bis 13. September 2025" },
+            // Nationale Feiertage und wichtige Tage
+            { name: "Neujahr", date: getNextYearlyDate(1, 1), yearly: true, category: "Feiertage" },
+            { name: "Heilige Drei Könige", date: getNextYearlyDate(1, 6), yearly: true, category: "Feiertage", description: "Nur in Baden-Württemberg, Bayern und Sachsen-Anhalt" },
+            { name: "Internationaler Frauentag", date: getNextYearlyDate(3, 8), yearly: true, category: "Feiertage", description: "Nur in Berlin und Mecklenburg-Vorpommern" },
+            { name: "Gründonnerstag", date: getNextMaundyThursday(), yearly: true, category: "Feiertage" },
+            { name: "Karfreitag", date: getNextGoodFriday(), yearly: true, category: "Feiertage" },
+            { name: "Ostersonntag", date: getNextEasterSunday(), yearly: true, category: "Feiertage" },
+            { name: "Ostermontag", date: getNextEasterMonday(), yearly: true, category: "Feiertage" },
+            { name: "Tag der Arbeit", date: getNextYearlyDate(5, 1), yearly: true, category: "Feiertage" },
+            { name: "Christi Himmelfahrt", date: getNextAscensionDay(), yearly: true, category: "Feiertage" },
+            { name: "Pfingstsonntag", date: getNextPentecostSunday(), yearly: true, category: "Feiertage" },
+            { name: "Pfingstmontag", date: getNextPentecostMonday(), yearly: true, category: "Feiertage" },
+            { name: "Fronleichnam", date: getNextCorpusChristi(), yearly: true, category: "Feiertage", description: "Nur in Baden-Württemberg, Bayern, Hessen, NRW, Rheinland-Pfalz, Saarland und Teilen von Sachsen und Thüringen" },
+            { name: "Mariä Himmelfahrt", date: getNextYearlyDate(8, 15), yearly: true, category: "Feiertage", description: "Nur in Bayern und Saarland" },
+            { name: "Weltkindertag", date: getNextYearlyDate(9, 20), yearly: true, category: "Feiertage", description: "Nur in Thüringen" },
+            { name: "Tag der Deutschen Einheit", date: getNextYearlyDate(10, 3), yearly: true, category: "Feiertage" },
+            { name: "Reformationstag", date: getNextYearlyDate(10, 31), yearly: true, category: "Feiertage", description: "In Brandenburg, Bremen, Hamburg, Mecklenburg-Vorpommern, Niedersachsen, Sachsen, Sachsen-Anhalt, Schleswig-Holstein, Thüringen" },
+            { name: "Allerheiligen", date: getNextYearlyDate(11, 1), yearly: true, category: "Feiertage", description: "Nur in Baden-Württemberg, Bayern, NRW, Rheinland-Pfalz, Saarland" },
+            { name: "Buß- und Bettag", date: getNextYearlyDate(11, 19), yearly: true, category: "Feiertage", description: "Nur in Sachsen" },
+            { name: "Erster Advent", date: getAdventSunday(new Date().getFullYear(), 1), yearly: true, category: "Feiertage" },
+            { name: "Zweiter Advent", date: getAdventSunday(new Date().getFullYear(), 2), yearly: true, category: "Feiertage" },
+            { name: "Dritter Advent", date: getAdventSunday(new Date().getFullYear(), 3), yearly: true, category: "Feiertage" },
+            { name: "Vierter Advent", date: getAdventSunday(new Date().getFullYear(), 4), yearly: true, category: "Feiertage" },
+            { name: "Heiligabend", date: getNextYearlyDate(12, 24), yearly: true, category: "Feiertage" },
+            { name: "Erster Weihnachtsfeiertag", date: getNextYearlyDate(12, 25), yearly: true, category: "Feiertage" },
+            { name: "Zweiter Weihnachtsfeiertag", date: getNextYearlyDate(12, 26), yearly: true, category: "Feiertage" },
+            { name: "Silvester", date: getNextYearlyDate(12, 31, 23, 59, 59), yearly: true, category: "Feiertage" },
+
+            // Feste und Traditionen (nicht unbedingt gesetzliche Feiertage, aber oft gefeiert)
+            { name: "Valentinstag", date: getNextYearlyDate(2, 14), yearly: true, category: "Feiertage" },
+            { name: "Rosenmontag", date: getNextCarnivalMonday(), yearly: true, category: "Feiertage" },
+            { name: "Aschermittwoch", date: getNextAshWednesday(), yearly: true, category: "Feiertage" },
+            { name: "Palmsonntag", date: getNextPalmSunday(), yearly: true, category: "Feiertage" },
+            { name: "Muttertag", date: getNextMothersDay(), yearly: true, category: "Feiertage", description: "Zweiter Sonntag im Mai" },
+            { name: "Vatertag", date: getNextAscensionDay(), yearly: true, category: "Feiertage", description: "Gleicher Tag wie Christi Himmelfahrt" },
+            { name: "Sommersonnenwende", date: getNextYearlyDate(6, 21), yearly: true, category: "Feiertage" },
+            { name: "Herbstanfang", date: getNextYearlyDate(9, 22), yearly: true, category: "Feiertage" },
+            { name: "Halloween", date: getNextYearlyDate(10, 31), yearly: true, category: "Feiertage" },
+            { name: "Nikolaus", date: getNextYearlyDate(12, 6), yearly: true, category: "Feiertage" },
+            { name: "Wintersonnenwende", date: getNextYearlyDate(12, 21), yearly: true, category: "Feiertage" },
+            { name: "Volkstrauertag", date: getNextVolkstrauertag(), yearly: true, category: "Feiertage", description: "Zweiter Sonntag vor dem 1. Advent" },
+            { name: "Totensonntag", date: getNextTotensonntag(), yearly: true, category: "Feiertage", description: "Letzter Sonntag vor dem 1. Advent" },
+
+            // Benutzerdefinierte Ereignisse (Beispiele) - Beachte yearly: false für einmalige Ereignisse
+            { name: "Schanzenfest Drachenlord", date: "2025-08-09T00:00:00", userSuggested: true, category: "Benutzerdefiniert", yearly: false },
+            { name: "Maifest Welmlingen", date: "2025-05-01T11:00:00", userSuggested: true, category: "Benutzerdefiniert", yearly: false },
+            { name: "Masters of Dirt 2026", date: "2026-02-14T19:30:00", userSuggested: true, category: "Benutzerdefiniert", yearly: false },
+            { name: "Sommerferien Baden-Württemberg", date: "2025-07-31T00:00:00", yearly: false, category: "Feiertage", description: "Sommerferien in Baden-Württemberg vom 31. Juli bis 13. September 2025" },
         ];
 
         let customEvents = JSON.parse(localStorage.getItem('customEvents')) || [];
         let currentCategory = "alle";
+        const eventsContainer = document.getElementById("events");
+        const loadingSpinner = document.getElementById("loading-spinner");
 
-        function updateStandardEvents(searchTerm = "") {
-            const eventsContainer = document.getElementById("events");
-            eventsContainer.innerHTML = "";
+        // Speichert die gefilterten und sortierten Ereignisse, die gerade angezeigt werden.
+        // Diese Liste wird einmalig beim Filtern/Suchen/Kategorie-Wechsel erstellt und dann nur aktualisiert.
+        let displayedEvents = []; 
 
-            const filteredEvents = events.filter(event => {
+        function showLoadingSpinner() {
+            loadingSpinner.style.display = 'block';
+            eventsContainer.style.opacity = '0.5'; // Dim events during loading
+        }
+
+        function hideLoadingSpinner() {
+            loadingSpinner.style.display = 'none';
+            eventsContainer.style.opacity = '1';
+        }
+
+        // Diese Funktion rendert die Ereignisse initial oder bei Filter-/Suchänderungen
+        function renderEvents(searchTerm = "") {
+            showLoadingSpinner();
+            eventsContainer.innerHTML = ""; // Altes DOM leeren
+
+            const allEvents = [...events, ...customEvents];
+            const now = new Date();
+
+            displayedEvents = allEvents.filter(event => {
                 const searchMatch = event.name.toLowerCase().includes(searchTerm.toLowerCase());
                 const categoryMatch = currentCategory === "alle" || event.category === currentCategory;
+
+                let eventDate = new Date(event.date); // Event date is stored in ISO string (UTC)
+                let timeDifference = eventDate.getTime() - now.getTime(); // Calculate difference in milliseconds
+
+                // Wichtig: Die "yearly"-Logik muss hier für die Filterung angewandt werden,
+                // damit das Ereignis für das nächste Jahr berücksichtigt wird, wenn es dieses Jahr vorbei ist.
+                // Aber wir ändern das event.date im originalen Array NICHT hier.
+                if (event.yearly) {
+                    let currentYearEventDate = new Date(Date.UTC(now.getFullYear(), eventDate.getUTCMonth(), eventDate.getUTCDate(), eventDate.getUTCHours(), eventDate.getUTCMinutes(), eventDate.getUTCSeconds()));
+                    if (currentYearEventDate.getTime() < now.getTime()) {
+                        eventDate.setUTCFullYear(currentYearEventDate.getUTCFullYear() + 1);
+                        timeDifference = eventDate.getTime() - now.getTime();
+                    }
+                } else {
+                    // For non-yearly events (like custom events or specific one-time events)
+                    // if the event has passed, hide it.
+                    if (timeDifference < 0) {
+                        return false; // Don't show this event if it's in the past and not yearly
+                    }
+                }
                 return searchMatch && categoryMatch;
+            }).sort((a, b) => {
+                // Sorting logic must also consider the next occurrence for yearly events
+                let dateA = new Date(a.date);
+                let dateB = new Date(b.date);
+
+                const now = new Date(); // Re-define now for consistency in sort
+
+                if (a.yearly) {
+                    let currentYearDateA = new Date(Date.UTC(now.getFullYear(), dateA.getUTCMonth(), dateA.getUTCDate(), dateA.getUTCHours(), dateA.getUTCMinutes(), dateA.getUTCSeconds()));
+                    if (currentYearDateA.getTime() < now.getTime()) {
+                        dateA.setUTCFullYear(currentYearDateA.getUTCFullYear() + 1);
+                    }
+                }
+                if (b.yearly) {
+                    let currentYearDateB = new Date(Date.UTC(now.getFullYear(), dateB.getUTCMonth(), dateB.getUTCDate(), dateB.getUTCHours(), dateB.getUTCMinutes(), dateB.getUTCSeconds()));
+                    if (currentYearDateB.getTime() < now.getTime()) {
+                        dateB.setUTCFullYear(currentYearDateB.getUTCFullYear() + 1);
+                    }
+                }
+                return dateA.getTime() - dateB.getTime();
             });
 
-            filteredEvents.forEach(event => {
-                let eventDate = new Date(event.date);
-                const now = new Date();
-                let timeDifference = eventDate - now;
+            displayedEvents.forEach(event => {
+                // Ensure the event date is updated to the next occurrence for display purposes
+                // This logic mirrors the filtering/sorting logic for yearly events
+                let eventDateForDisplay = new Date(event.date); // Start with the original date
+                const nowForDisplay = new Date();
 
-                if(timeDifference < 0 && event.yearly){
-                    eventDate.setFullYear(eventDate.getFullYear() + 1);
-                    timeDifference = eventDate - now;
-                    event.date = eventDate.toISOString();
+                if (event.yearly) {
+                    let currentYearEventDateCheck = new Date(Date.UTC(nowForDisplay.getFullYear(), eventDateForDisplay.getUTCMonth(), eventDateForDisplay.getUTCDate(), eventDateForDisplay.getUTCHours(), eventDateForDisplay.getUTCMinutes(), eventDateForDisplay.getUTCSeconds()));
+                    if (currentYearEventDateCheck.getTime() < nowForDisplay.getTime()) {
+                        eventDateForDisplay.setUTCFullYear(currentYearEventDateCheck.getUTCFullYear() + 1);
+                    }
                 }
+
 
                 const eventElement = document.createElement("div");
                 eventElement.className = "event";
+                eventElement.dataset.eventName = event.name; // ID for later update
+
+                // Format the event date for display in local timezone
+                const eventDateFormatted = new Intl.DateTimeFormat('de-DE', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    timeZoneName: 'shortOffset' // e.g., "CEST"
+                }).format(eventDateForDisplay);
+
+
+                eventElement.innerHTML = `
+                    <h2>${event.name}</h2>
+                    <p class="countdown" id="countdown-${event.name.replace(/\s+/g, '')}"></p>
+                    <p>Datum: ${eventDateFormatted}</p>
+                    ${event.userSuggested ? '<span class="tag">Von Benutzer vorgeschlagen</span>' : ""}
+                    ${event.description ? `<details><summary>Beschreibung</summary><p>${event.description}</p></details>` : ""}
+                `;
+                eventsContainer.appendChild(eventElement);
+            });
+            hideLoadingSpinner();
+            updateCountdowns(); // Initial countdown update
+        }
+
+        // Diese Funktion aktualisiert NUR die Countdown-Texte
+        function updateCountdowns() {
+            const now = new Date();
+            displayedEvents.forEach(event => {
+                // Erneut die Jahres-Anpassung vornehmen, falls ein jährlich wiederkehrendes Ereignis
+                // im aktuellen Render-Zyklus gerade umgeschlagen ist (z.B. Silvester um Mitternacht)
+                let eventDate = new Date(event.date); // Start with the original date
+                if (event.yearly) {
+                    let currentYearEventDateCheck = new Date(Date.UTC(now.getFullYear(), eventDate.getUTCMonth(), eventDate.getUTCDate(), eventDate.getUTCHours(), eventDate.getUTCMinutes(), eventDate.getUTCSeconds()));
+                    if (currentYearEventDateCheck.getTime() < now.getTime()) {
+                        eventDate.setUTCFullYear(currentYearEventDateCheck.getUTCFullYear() + 1);
+                    }
+                }
+
+                let timeDifference = eventDate.getTime() - now.getTime();
+                const countdownElement = document.getElementById(`countdown-${event.name.replace(/\s+/g, '')}`);
+
+                if (!countdownElement) return; // If element doesn't exist (e.g., filtered out), skip
 
                 let countdownText = "";
                 if (timeDifference > 0) {
                     const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
                     const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-                    countdownText = `Noch ${days} Tage, ${hours} Stunden, ${minutes} Minuten`;
+                    const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+
+                    countdownText = `Noch ${days} Tage, ${hours} Stunden, ${minutes} Minuten, ${seconds} Sekunden`;
                 } else {
                     countdownText = "Das Ereignis ist bereits eingetroffen!";
+                    // Optional: Bei nicht-jährlichen Ereignissen, die abgelaufen sind,
+                    // könnte man hier `renderEvents()` aufrufen, um sie auszublenden.
+                    // Das würde aber die `details`-Tags wieder zuklappen lassen.
+                    // Eine bessere Lösung wäre, abgelaufene, nicht-jährliche Events erst zu entfernen,
+                    // wenn der Benutzer explizit neu filtert oder lädt.
                 }
-
-                eventElement.innerHTML = `
-                    <h2>${event.name}</h2>
-                    <p class="countdown">${countdownText}</p>
-                    ${event.userSuggested ? '<span class="tag">Von Benutzer vorgeschlagen</span>' : ""}
-                `;
-
-                eventsContainer.appendChild(eventElement);
+                countdownElement.textContent = countdownText;
             });
+
+            // Optional: Wenn ein nicht-jährliches Ereignis abläuft, soll es verschwinden,
+            // aber das sollte nicht jede Sekunde die gesamte Liste neu rendern.
+            // Man könnte hier eine komplexere Logik einbauen, um nur das eine Element zu entfernen.
+            // Fürs Erste bleibt die Lösung, dass es erst beim nächsten Filter-/Suchvorgang verschwindet.
+            // Oder man fügt eine explizite Überprüfung und Entfernung in renderEvents() ein,
+            // die nur ausgeführt wird, wenn wirklich das Datum überfällig wird.
         }
 
-        function updateAllEvents(searchTerm = "") {
-            const eventsContainer = document.getElementById("events");
-            eventsContainer.innerHTML = "";
-
-            const allEvents = [...events, ...customEvents]; // Fügt benutzerdefinierte Ereignisse hinzu
-
-            const filteredEvents = allEvents.filter(event => {
-                const searchMatch = event.name.toLowerCase().includes(searchTerm.toLowerCase());
-                const categoryMatch = currentCategory === "alle" || event.category === currentCategory;
-                return searchMatch && categoryMatch;
-            });
-
-            filteredEvents.forEach(event => {
-                let eventDate = new Date(event.date);
-                const now = new Date();
-                let timeDifference = eventDate - now;
-
-                if(timeDifference < 0 && event.yearly){
-                    eventDate.setFullYear(eventDate.getFullYear() + 1);
-                    timeDifference = eventDate - now;
-                    event.date = eventDate.toISOString();
-                }
-
-                const eventElement = document.createElement("div");
-                eventElement.className = "event";
-
-                let countdownText = "";
-                if (timeDifference > 0) {
-                    const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-                    countdownText = `Noch ${days} Tage, ${hours} Stunden, ${minutes} Minuten`;
-                } else {
-                    countdownText = "Das Ereignis ist bereits eingetroffen!";
-                }
-
-                eventElement.innerHTML = `
-                    <h2>${event.name}</h2>
-                    <p class="countdown">${countdownText}</p>
-                    ${event.userSuggested ? '<span class="tag">Von Benutzer vorgeschlagen</span>' : ""}
-                `;
-
-                eventsContainer.appendChild(eventElement);
-            });
-        }
 
         function toggleSuggestionForm() {
             const form = document.getElementById("suggestion-form");
@@ -293,13 +566,13 @@
         });
 
         document.getElementById("search-input").addEventListener("input", function() {
-            updateAllEvents(this.value);
+            renderEvents(this.value); // Beim Suchen neu rendern
         });
 
         document.querySelectorAll("#category-menu button").forEach(button => {
             button.addEventListener("click", function() {
                 currentCategory = this.dataset.category;
-                updateAllEvents(document.getElementById("search-input").value);
+                renderEvents(document.getElementById("search-input").value); // Beim Kategorie-Wechsel neu rendern
             });
         });
 
@@ -322,6 +595,9 @@
                 if (response.ok) {
                     formularStatus.textContent = 'Vielen Dank für deinen Vorschlag!';
                     formular.reset();
+                    // Optional: Nach dem Senden eines Vorschlags könnte man die Liste neu rendern,
+                    // falls das vorgeschlagene Ereignis in der aktuellen Ansicht relevant wäre.
+                    // renderEvents(document.getElementById("search-input").value);
                 } else {
                     const errorData = await response.json();
                     if (errorData.errors) {
@@ -335,8 +611,11 @@
             }
         });
 
-        setInterval(() => updateAllEvents(document.getElementById("search-input").value), 1000);
-        updateAllEvents();
+        // Initiales Rendern der Ereignisse beim Laden der Seite
+        renderEvents();
+
+        // Nur die Countdowns jede Sekunde aktualisieren
+        setInterval(updateCountdowns, 1000);
     </script>
 </body>
 </html>
