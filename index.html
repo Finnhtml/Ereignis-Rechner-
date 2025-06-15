@@ -5,117 +5,180 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ereignis-Zeitrechner</title>
     <style>
+        :root {
+            --bg-color-dark: #121212;
+            --bg-color-medium: #1e1e1e;
+            --bg-color-light: #222;
+            --bg-color-details: #2a2a2a;
+            --text-color-light: white;
+            --text-color-medium: #ccc;
+            --accent-color-green: #00796b;
+            --accent-color-green-dark: #005a4e;
+            --accent-color-bright-green: #76ff03;
+            --accent-color-pink: #f50057;
+            --focus-outline-color: #a7ffeb;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background: #121212;
-            color: white;
+            background: var(--bg-color-dark);
+            color: var(--text-color-light);
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh; /* Ensure body takes full viewport height */
         }
         header {
-            background: #1e1e1e;
-            color: white;
-            padding: 2rem 1rem;
+            background: var(--bg-color-medium);
+            color: var(--text-color-light);
+            padding: 1.5rem 1rem; /* Slightly less padding on mobile */
             text-align: center;
             width: 100%;
         }
+        h1 {
+            font-size: 2rem; /* Adjusted for mobile */
+            margin-bottom: 1rem;
+        }
         header button {
             padding: 0.8rem 1.5rem;
-            background: #00796b;
-            color: white;
+            background: var(--accent-color-green);
+            color: var(--text-color-light);
             border: none;
             border-radius: 4px;
             font-size: 1rem;
             cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: auto; /* Ensure button width is flexible */
+            box-sizing: border-box; /* Include padding in width */
+        }
+        header button:hover, header button:focus {
+            background-color: var(--accent-color-green-dark);
+            outline: 2px solid var(--focus-outline-color); /* Visible focus indicator */
+            outline-offset: 2px;
         }
         .event {
             margin: 1rem auto;
-            padding: 1.5rem;
+            padding: 1rem; /* Reduced padding for mobile */
             border-radius: 8px;
-            background: #222;
+            background: var(--bg-color-light);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 90%;
+            width: 95%; /* More width on mobile */
             max-width: 600px;
+            box-sizing: border-box;
         }
         .countdown {
-            font-size: 1.5rem;
-            color: #76ff03;
+            font-size: 1.3rem; /* Slightly smaller for mobile */
+            color: var(--accent-color-bright-green);
+            word-break: break-word; /* Prevent long lines from overflowing */
         }
         .tag {
             display: inline-block;
             padding: 0.3rem 0.6rem;
             margin: 0.3rem;
-            font-size: 0.9rem;
+            font-size: 0.8rem; /* Smaller font for tags */
             border-radius: 12px;
-            background: #f50057;
-            color: white;
+            background: var(--accent-color-pink);
+            color: var(--text-color-light);
+            white-space: nowrap; /* Prevent tag text from wrapping */
         }
-        #suggestion-form {
+        #suggestion-section {
             text-align: center;
             margin-top: 1rem;
+            width: 95%; /* Take more width on mobile */
+            max-width: 600px;
+            box-sizing: border-box;
         }
         #suggestion-form input[type="text"],
         #suggestion-form input[type="datetime-local"],
         #suggestion-form textarea {
-            width: 90%;
+            width: calc(100% - 2rem); /* Full width minus padding */
             display: block;
             margin: 0.5rem auto;
-            padding: 0.5rem;
+            padding: 0.8rem; /* Increased padding for easier tapping */
             border-radius: 4px;
             border: 1px solid #333;
             background-color: #333;
-            color: white;
+            color: var(--text-color-light);
+            font-size: 1rem; /* Ensure readable font size */
+            box-sizing: border-box;
         }
         #suggestion-form input[type="datetime-local"]::-webkit-calendar-picker-indicator {
             filter: invert(1);
         }
+        #suggestion-form input[type="text"]:focus,
+        #suggestion-form input[type="datetime-local"]:focus,
+        #suggestion-form textarea:focus {
+            outline: 2px solid var(--focus-outline-color);
+            outline-offset: 2px;
+        }
 
         #suggestion-form button {
             margin: 0.5rem auto;
-            padding: 0.5rem;
+            padding: 0.8rem 1.5rem;
             width: auto;
             display: block;
         }
         #search-input {
-            width: 90%;
+            width: 95%; /* More width on mobile */
+            max-width: 600px;
             margin: 1rem auto;
             display: block;
-            padding: 0.5rem;
+            padding: 0.8rem; /* Increased padding for easier tapping */
             border-radius: 4px;
             border: 1px solid #333;
             background-color: #333;
-            color: white;
+            color: var(--text-color-light);
+            font-size: 1rem; /* Ensure readable font size */
+            box-sizing: border-box;
+        }
+        #search-input:focus {
+            outline: 2px solid var(--focus-outline-color);
+            outline-offset: 2px;
         }
         #category-menu {
             margin-top: 1rem;
             text-align: center;
-            width: 100%;
+            width: 95%;
+            max-width: 600px;
+            display: flex; /* Use flexbox for category buttons */
+            flex-wrap: wrap; /* Allow buttons to wrap to next line */
+            justify-content: center;
+            gap: 0.5rem; /* Space between buttons */
         }
         #category-menu button {
-            padding: 0.5rem 1rem;
-            margin: 0 0.5rem;
-            background: #00796b;
-            color: white;
+            padding: 0.5rem 0.8rem; /* Slightly less padding for smaller buttons */
+            margin: 0; /* Managed by gap */
+            background: var(--accent-color-green);
+            color: var(--text-color-light);
             border: none;
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            font-size: 0.9rem; /* Smaller font for buttons */
+            flex-grow: 1; /* Allow buttons to grow to fill space, but limit max width */
+            max-width: 150px; /* Max width to prevent buttons from becoming too wide */
+            box-sizing: border-box;
         }
-        #category-menu button:hover {
-            background-color: #005a4e;
+        #category-menu button:hover, #category-menu button:focus {
+            background-color: var(--accent-color-green-dark);
+            outline: 2px solid var(--focus-outline-color);
+            outline-offset: 2px;
+        }
+        #events-section {
+            width: 95%; /* Take more width on mobile */
+            max-width: 800px;
+            min-height: 100px;
+            box-sizing: border-box;
         }
         #events {
-            width: 90%;
-            max-width: 800px;
-            min-height: 100px; /* To prevent layout jumps when loading */
+             width: 100%;
         }
-        button {
+        main > button {
             padding: 0.8rem 1.5rem;
-            background: #00796b;
-            color: white;
+            background: var(--accent-color-green);
+            color: var(--text-color-light);
             border: none;
             border-radius: 4px;
             font-size: 1rem;
@@ -123,20 +186,22 @@
             margin-top: 20px;
             transition: background-color 0.3s ease;
         }
-        button:hover {
-            background-color: #005a4e;
+        main > button:hover, main > button:focus {
+            background-color: var(--accent-color-green-dark);
+            outline: 2px solid var(--focus-outline-color);
+            outline-offset: 2px;
         }
 
         /* Loading Spinner */
         .loader {
             border: 5px solid #f3f3f3;
-            border-top: 5px solid #00796b;
+            border-top: 5px solid var(--accent-color-green);
             border-radius: 50%;
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
             margin: 20px auto;
-            display: none; /* Hidden by default */
+            display: none;
         }
 
         @keyframes spin {
@@ -147,55 +212,167 @@
         /* Description details styling */
         details {
             margin-top: 0.5rem;
-            background-color: #2a2a2a;
+            background-color: var(--bg-color-details);
             border-radius: 4px;
             padding: 0.5rem 1rem;
+            box-sizing: border-box;
         }
         summary {
             cursor: pointer;
             outline: none;
             font-weight: bold;
+            padding: 0.2rem 0; /* Added padding for easier tapping */
+        }
+        summary:focus {
+            outline: 2px solid var(--focus-outline-color);
+            outline-offset: 2px;
         }
         details p {
             margin-top: 0.5rem;
             font-size: 0.9em;
-            color: #ccc;
+            color: var(--text-color-medium);
+        }
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        /* Media Queries for smaller screens */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            header {
+                padding: 1rem 0.5rem;
+            }
+            header button {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+            .event {
+                margin: 0.8rem auto;
+                padding: 0.8rem;
+                width: 98%; /* Even more width on very small screens */
+            }
+            .countdown {
+                font-size: 1.2rem;
+            }
+            #suggestion-section, #search-input, #category-menu, #events-section {
+                width: 98%;
+            }
+            #suggestion-form input[type="text"],
+            #suggestion-form input[type="datetime-local"],
+            #suggestion-form textarea,
+            #search-input {
+                padding: 0.6rem;
+                font-size: 0.95rem;
+            }
+            #category-menu button {
+                font-size: 0.85rem;
+                padding: 0.4rem 0.7rem;
+                flex-basis: auto; /* Let content dictate width more */
+                max-width: none; /* Remove max-width on smaller screens for better wrapping */
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.6rem;
+            }
+            header {
+                padding: 0.8rem 0.5rem;
+            }
+            header button {
+                font-size: 0.85rem;
+                padding: 0.5rem 0.8rem;
+            }
+            .event {
+                padding: 0.7rem;
+            }
+            .countdown {
+                font-size: 1.1rem;
+            }
+            #suggestion-form input[type="text"],
+            #suggestion-form input[type="datetime-local"],
+            #suggestion-form textarea,
+            #search-input {
+                font-size: 0.9rem;
+            }
+            #category-menu {
+                flex-direction: column; /* Stack buttons vertically on very small screens */
+                align-items: stretch; /* Stretch buttons to full width */
+                gap: 0.3rem;
+            }
+            #category-menu button {
+                max-width: 100%; /* Ensure they take full width */
+            }
         }
     </style>
 </head>
 <body>
     <header>
         <h1>Ereignis-Zeitrechner</h1>
-        <button id="toggleFormButton">Ereignis vorschlagen</button>
-        <div id="suggestion-form" style="display:none;">
-            <form id="mein-formular" action="https://formspree.io/f/xeoalwqb" method="POST">
-                <input type="text" name="event-name" placeholder="Ereignisname" required>
-                <input type="datetime-local" name="event-date" required>
-                <textarea name="event-description" placeholder="Ereignisbeschreibung"></textarea>
-                <button type="submit">Vorschlagen</button>
-                <p id="formular-status"></p>
-            </form>
-        </div>
-        <input type="text" id="search-input" placeholder="Ereignis suchen...">
-        <div id="category-menu">
-            <button data-category="alle">Alle</button>
-            <button data-category="Feiertage">Feiertage</button>
-            <button data-category="Benutzerdefiniert">Benutzerdefiniert</button>
-            <button id="add-custom-event">Eigenes Ereignis hinzufügen</button>
-        </div>
+        <button id="toggleFormButton" aria-expanded="false" aria-controls="suggestion-section">Ereignis vorschlagen</button>
     </header>
 
-    <div id="loading-spinner" class="loader"></div>
-    <div id="events"></div>
-    <button onclick="window.location.href='custom-events.html'">Meine benutzerdefinierten Ereignisse</button>
+    <main>
+        <section id="suggestion-section" style="display:none;">
+            <h2>Ereignis vorschlagen</h2>
+            <form id="mein-formular" action="https://formspree.io/f/xeoalwqb" method="POST">
+                <label for="event-name">Ereignisname:</label>
+                <input type="text" id="event-name" name="event-name" placeholder="Ereignisname" required>
+
+                <label for="event-date">Datum und Uhrzeit:</label>
+                <input type="datetime-local" id="event-date" name="event-date" required>
+
+                <label for="event-description">Ereignisbeschreibung (optional):</label>
+                <textarea id="event-description" name="event-description" placeholder="Ereignisbeschreibung"></textarea>
+
+                <button type="submit">Vorschlagen</button>
+                <p id="formular-status" aria-live="polite"></p>
+            </form>
+        </section>
+
+        <section role="search">
+            <label for="search-input" class="visually-hidden">Ereignis suchen:</label>
+            <input type="text" id="search-input" placeholder="Ereignis suchen...">
+        </section>
+
+        <section id="category-menu" role="radiogroup" aria-labelledby="category-label">
+            <h2 id="category-label" class="visually-hidden">Kategorien filtern</h2>
+            <button data-category="alle" role="radio" aria-checked="true">Alle</button>
+            <button data-category="Feiertage" role="radio" aria-checked="false">Feiertage</button>
+            <button data-category="Benutzerdefiniert" role="radio" aria-checked="false">Benutzerdefiniert</button>
+            <button id="add-custom-event">Eigenes Ereignis hinzufügen</button>
+        </section>
+
+        <section id="events-section">
+            <h2 class="visually-hidden">Anstehende Ereignisse</h2>
+            <div id="loading-spinner" class="loader" aria-live="polite" aria-label="Ereignisse werden geladen"></div>
+            <div id="events"></div>
+        </section>
+        <button onclick="window.location.href='custom-events.html'">Meine benutzerdefinierten Ereignisse</button>
+    </main>
 
     <script>
         // Helper function to get next occurrence of a yearly event
+        // Takes month, day (1-based), hour, minute, second
         function getNextYearlyDate(month, day, hour = 0, minute = 0, second = 0) {
-            let year = new Date().getFullYear();
-            // Create date in local time, then adjust to UTC for consistency in calculations
+            const now = new Date();
+            let year = now.getFullYear();
+            // Create a date for the current year in UTC
             let date = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
-            if (date < new Date()) { // Compare with current local time
+            
+            // If the date for the current year has already passed in local time,
+            // advance to the next year.
+            // We compare UTC date with local 'now' after converting UTC date to local time equivalent for comparison.
+            if (date.getTime() < now.getTime()) { // Compare UTC time of event with local time of now
                 date.setUTCFullYear(year + 1);
             }
             return date.toISOString();
@@ -220,20 +397,25 @@
             return new Date(Date.UTC(year, month - 1, day, 0, 0, 0)); // Return in UTC
         }
 
+        // Helper to get the next occurrence of Easter Sunday
         function getNextEasterSunday() {
-            let year = new Date().getFullYear();
+            const now = new Date();
+            let year = now.getFullYear();
             let easter = getEasterSunday(year);
-            if (easter < new Date()) {
+            if (easter.getTime() < now.getTime()) { // Compare UTC Easter with local now
                 easter = getEasterSunday(year + 1);
             }
             return easter.toISOString();
         }
 
+        // Helper to get the next occurrence of a holiday relative to Easter
         function getNextHolidayFromEaster(daysOffset) {
-            let year = new Date().getFullYear();
-            let easter = getEasterSunday(year); // Easter is calculated in UTC
-            let holiday = new Date(easter.getTime() + daysOffset * 24 * 60 * 60 * 1000); // Add offset in milliseconds
-            if (holiday < new Date()) { // Compare with current local time
+            const now = new Date();
+            let year = now.getFullYear();
+            let easter = getEasterSunday(year);
+            let holiday = new Date(easter.getTime() + daysOffset * 24 * 60 * 60 * 1000);
+            
+            if (holiday.getTime() < now.getTime()) { // Compare UTC Holiday with local now
                 year++;
                 easter = getEasterSunday(year);
                 holiday = new Date(easter.getTime() + daysOffset * 24 * 60 * 60 * 1000);
@@ -241,48 +423,20 @@
             return holiday.toISOString();
         }
 
-        function getNextCarnivalMonday() {
-            return getNextHolidayFromEaster(-48); // 48 Tage vor Ostersonntag
-        }
-
-        function getNextAshWednesday() {
-            return getNextHolidayFromEaster(-47); // 47 Tage vor Ostersonntag
-        }
-        
-        function getNextPalmSunday() {
-            return getNextHolidayFromEaster(-7); // 7 Tage vor Ostersonntag
-        }
-
-        function getNextMaundyThursday() {
-            return getNextHolidayFromEaster(-3); // 3 Tage vor Ostersonntag
-        }
-
-        function getNextGoodFriday() {
-            return getNextHolidayFromEaster(-2); // 2 Tage vor Ostersonntag
-        }
-
-        function getNextEasterMonday() {
-            return getNextHolidayFromEaster(1); // 1 Tag nach Ostersonntag
-        }
-
-        function getNextAscensionDay() {
-            return getNextHolidayFromEaster(39); // 39 Tage nach Ostersonntag
-        }
-
-        function getNextPentecostSunday() {
-            return getNextHolidayFromEaster(49); // 49 Tage nach Ostersonntag
-        }
-
-        function getNextPentecostMonday() {
-            return getNextHolidayFromEaster(50); // 50 Tage nach Ostersonntag
-        }
-
-        function getNextCorpusChristi() {
-            return getNextHolidayFromEaster(60); // 60 Tage nach Ostersonntag
-        }
+        function getNextCarnivalMonday() { return getNextHolidayFromEaster(-48); }
+        function getNextAshWednesday() { return getNextHolidayFromEaster(-47); }
+        function getNextPalmSunday() { return getNextHolidayFromEaster(-7); }
+        function getNextMaundyThursday() { return getNextHolidayFromEaster(-3); }
+        function getNextGoodFriday() { return getNextHolidayFromEaster(-2); }
+        function getNextEasterMonday() { return getNextHolidayFromEaster(1); }
+        function getNextAscensionDay() { return getNextHolidayFromEaster(39); }
+        function getNextPentecostSunday() { return getNextHolidayFromEaster(49); }
+        function getNextPentecostMonday() { return getNextHolidayFromEaster(50); }
+        function getNextCorpusChristi() { return getNextHolidayFromEaster(60); }
 
         // Function to determine Advent Sundays
         function getAdventSunday(year, adventNumber) {
+            const now = new Date();
             // Christmas (Dec 25th) of the given year in UTC
             const christmas = new Date(Date.UTC(year, 11, 25)); 
             let date = new Date(christmas);
@@ -292,7 +446,7 @@
             date.setUTCDate(christmas.getUTCDate() - (christmas.getUTCDay() + (7 - (4 - adventNumber + 1) * 7)) % 7);
             
             // Adjust if the Advent Sunday for the *current* year has already passed based on *local* time
-            if (date < new Date() && new Date().getFullYear() === year) {
+            if (date.getTime() < now.getTime() && year === now.getFullYear()) {
                  date = getAdventSunday(year + 1, adventNumber);
             }
             return date.toISOString();
@@ -300,27 +454,33 @@
 
         // Helper to get next Mother's Day (2nd Sunday in May)
         function getNextMothersDay() {
-            let year = new Date().getFullYear();
-            let date = new Date(year, 4, 1); // May 1st of current year (local time)
-            let firstSundayInMay = new Date(date.setDate(1 + (7 - date.getDay()) % 7)); // Get first Sunday in May
-            let mothersDay = new Date(firstSundayInMay.getTime() + 7 * 24 * 60 * 60 * 1000); // Add 7 days for second Sunday
+            const now = new Date();
+            let year = now.getFullYear();
+            // Create date for May 1st of current year in local time (for getDay())
+            let date = new Date(year, 4, 1); 
+            // Get first Sunday in May (local time)
+            let firstSundayInMay = new Date(date.setDate(1 + (7 - date.getDay()) % 7)); 
+            // Add 7 days for second Sunday (local time)
+            let mothersDay = new Date(firstSundayInMay.getTime() + 7 * 24 * 60 * 60 * 1000); 
 
-            if (mothersDay < new Date()) {
+            if (mothersDay.getTime() < now.getTime()) {
                 year++;
                 date = new Date(year, 4, 1);
                 firstSundayInMay = new Date(date.setDate(1 + (7 - date.getDay()) % 7));
                 mothersDay = new Date(firstSundayInMay.getTime() + 7 * 24 * 60 * 60 * 1000);
             }
+            // Convert to ISO string (which is UTC) before returning
             return mothersDay.toISOString();
         }
 
         // Helper to get next Volkstrauertag (2nd Sunday before 1st Advent)
         function getNextVolkstrauertag() {
-            let year = new Date().getFullYear();
+            const now = new Date();
+            let year = now.getFullYear();
             let firstAdvent = new Date(getAdventSunday(year, 1));
             let volkstrauertag = new Date(firstAdvent.getTime() - 2 * 7 * 24 * 60 * 60 * 1000); // 2 weeks before 1st Advent
 
-            if (volkstrauertag < new Date()) {
+            if (volkstrauertag.getTime() < now.getTime()) {
                 year++;
                 firstAdvent = new Date(getAdventSunday(year, 1));
                 volkstrauertag = new Date(firstAdvent.getTime() - 2 * 7 * 24 * 60 * 60 * 1000);
@@ -330,11 +490,12 @@
 
         // Helper to get next Totensonntag (Last Sunday before 1st Advent)
         function getNextTotensonntag() {
-            let year = new Date().getFullYear();
+            const now = new Date();
+            let year = now.getFullYear();
             let firstAdvent = new Date(getAdventSunday(year, 1));
             let totensonntag = new Date(firstAdvent.getTime() - 7 * 24 * 60 * 60 * 1000); // 1 week before 1st Advent
 
-            if (totensonntag < new Date()) {
+            if (totensonntag.getTime() < now.getTime()) {
                 year++;
                 firstAdvent = new Date(getAdventSunday(year, 1));
                 totensonntag = new Date(firstAdvent.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -398,10 +559,11 @@
         let currentCategory = "alle";
         const eventsContainer = document.getElementById("events");
         const loadingSpinner = document.getElementById("loading-spinner");
+        const toggleFormButton = document.getElementById("toggleFormButton");
+        const suggestionSection = document.getElementById("suggestion-section");
 
-        // Speichert die gefilterten und sortierten Ereignisse, die gerade angezeigt werden.
-        // Diese Liste wird einmalig beim Filtern/Suchen/Kategorie-Wechsel erstellt und dann nur aktualisiert.
-        let displayedEvents = []; 
+        // Set to store IDs of details elements that should remain open
+        const openedDetails = new Set(); 
 
         function showLoadingSpinner() {
             loadingSpinner.style.display = 'block';
@@ -413,120 +575,62 @@
             eventsContainer.style.opacity = '1';
         }
 
-        // Diese Funktion rendert die Ereignisse initial oder bei Filter-/Suchänderungen
-        function renderEvents(searchTerm = "") {
+        function updateAllEvents(searchTerm = "") {
             showLoadingSpinner();
-            eventsContainer.innerHTML = ""; // Altes DOM leeren
+            eventsContainer.innerHTML = "";
 
             const allEvents = [...events, ...customEvents];
-            const now = new Date();
+            const now = new Date(); // Get current time *once* per update cycle
 
-            displayedEvents = allEvents.filter(event => {
-                const searchMatch = event.name.toLowerCase().includes(searchTerm.toLowerCase());
-                const categoryMatch = currentCategory === "alle" || event.category === currentCategory;
-
+            const filteredAndPreparedEvents = allEvents.map(event => {
                 let eventDate = new Date(event.date); // Event date is stored in ISO string (UTC)
-                let timeDifference = eventDate.getTime() - now.getTime(); // Calculate difference in milliseconds
-
-                // Wichtig: Die "yearly"-Logik muss hier für die Filterung angewandt werden,
-                // damit das Ereignis für das nächste Jahr berücksichtigt wird, wenn es dieses Jahr vorbei ist.
-                // Aber wir ändern das event.date im originalen Array NICHT hier.
+                
+                // For yearly events, adjust the date to the next upcoming occurrence
                 if (event.yearly) {
-                    let currentYearEventDate = new Date(Date.UTC(now.getFullYear(), eventDate.getUTCMonth(), eventDate.getUTCDate(), eventDate.getUTCHours(), eventDate.getUTCMinutes(), eventDate.getUTCSeconds()));
+                    const eventMonth = eventDate.getUTCMonth();
+                    const eventDay = eventDate.getUTCDate();
+                    const eventHour = eventDate.getUTCHours();
+                    const eventMinute = eventDate.getUTCMinutes();
+                    const eventSecond = eventDate.getUTCSeconds();
+
+                    // Create a comparable date in the current year, in UTC for consistency
+                    let currentYearEventDate = new Date(Date.UTC(now.getFullYear(), eventMonth, eventDay, eventHour, eventMinute, eventSecond));
+                    
+                    // If this year's event has passed (compared to current local time), use next year
                     if (currentYearEventDate.getTime() < now.getTime()) {
-                        eventDate.setUTCFullYear(currentYearEventDate.getUTCFullYear() + 1);
-                        timeDifference = eventDate.getTime() - now.getTime();
+                        eventDate.setUTCFullYear(now.getFullYear() + 1);
+                    } else {
+                        // If this year's event is still ahead, ensure we use this year's date.
+                        // This handles cases where event.date might still point to a past year initially.
+                        eventDate.setUTCFullYear(now.getFullYear()); 
                     }
                 } else {
-                    // For non-yearly events (like custom events or specific one-time events)
-                    // if the event has passed, hide it.
-                    if (timeDifference < 0) {
-                        return false; // Don't show this event if it's in the past and not yearly
+                    // For non-yearly events, if they are in the past, mark them as 'passed'
+                    if (eventDate.getTime() < now.getTime()) {
+                        event.passed = true;
                     }
+                }
+                return { ...event, calculatedDate: eventDate }; // Add calculated date for filtering/sorting
+            }).filter(event => {
+                const searchMatch = event.name.toLowerCase().includes(searchTerm.toLowerCase());
+                const categoryMatch = currentCategory === "alle" || event.category === currentCategory;
+                
+                // Only show non-yearly events that haven't passed
+                if (!event.yearly && event.passed) {
+                    return false;
                 }
                 return searchMatch && categoryMatch;
             }).sort((a, b) => {
-                // Sorting logic must also consider the next occurrence for yearly events
-                let dateA = new Date(a.date);
-                let dateB = new Date(b.date);
-
-                const now = new Date(); // Re-define now for consistency in sort
-
-                if (a.yearly) {
-                    let currentYearDateA = new Date(Date.UTC(now.getFullYear(), dateA.getUTCMonth(), dateA.getUTCDate(), dateA.getUTCHours(), dateA.getUTCMinutes(), dateA.getUTCSeconds()));
-                    if (currentYearDateA.getTime() < now.getTime()) {
-                        dateA.setUTCFullYear(currentYearDateA.getUTCFullYear() + 1);
-                    }
-                }
-                if (b.yearly) {
-                    let currentYearDateB = new Date(Date.UTC(now.getFullYear(), dateB.getUTCMonth(), dateB.getUTCDate(), dateB.getUTCHours(), dateB.getUTCMinutes(), dateB.getUTCSeconds()));
-                    if (currentYearDateB.getTime() < now.getTime()) {
-                        dateB.setUTCFullYear(currentYearDateB.getUTCFullYear() + 1);
-                    }
-                }
-                return dateA.getTime() - dateB.getTime();
+                // Sort by the calculated date
+                return a.calculatedDate.getTime() - b.calculatedDate.getTime();
             });
 
-            displayedEvents.forEach(event => {
-                // Ensure the event date is updated to the next occurrence for display purposes
-                // This logic mirrors the filtering/sorting logic for yearly events
-                let eventDateForDisplay = new Date(event.date); // Start with the original date
-                const nowForDisplay = new Date();
-
-                if (event.yearly) {
-                    let currentYearEventDateCheck = new Date(Date.UTC(nowForDisplay.getFullYear(), eventDateForDisplay.getUTCMonth(), eventDateForDisplay.getUTCDate(), eventDateForDisplay.getUTCHours(), eventDateForDisplay.getUTCMinutes(), eventDateForDisplay.getUTCSeconds()));
-                    if (currentYearEventDateCheck.getTime() < nowForDisplay.getTime()) {
-                        eventDateForDisplay.setUTCFullYear(currentYearEventDateCheck.getUTCFullYear() + 1);
-                    }
-                }
-
+            filteredAndPreparedEvents.forEach((event, index) => {
+                const eventDate = event.calculatedDate; // Use the calculated (adjusted) date
+                const timeDifference = eventDate.getTime() - now.getTime(); // Re-calculate based on adjusted date
 
                 const eventElement = document.createElement("div");
                 eventElement.className = "event";
-                eventElement.dataset.eventName = event.name; // ID for later update
-
-                // Format the event date for display in local timezone
-                const eventDateFormatted = new Intl.DateTimeFormat('de-DE', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    timeZoneName: 'shortOffset' // e.g., "CEST"
-                }).format(eventDateForDisplay);
-
-
-                eventElement.innerHTML = `
-                    <h2>${event.name}</h2>
-                    <p class="countdown" id="countdown-${event.name.replace(/\s+/g, '')}"></p>
-                    <p>Datum: ${eventDateFormatted}</p>
-                    ${event.userSuggested ? '<span class="tag">Von Benutzer vorgeschlagen</span>' : ""}
-                    ${event.description ? `<details><summary>Beschreibung</summary><p>${event.description}</p></details>` : ""}
-                `;
-                eventsContainer.appendChild(eventElement);
-            });
-            hideLoadingSpinner();
-            updateCountdowns(); // Initial countdown update
-        }
-
-        // Diese Funktion aktualisiert NUR die Countdown-Texte
-        function updateCountdowns() {
-            const now = new Date();
-            displayedEvents.forEach(event => {
-                // Erneut die Jahres-Anpassung vornehmen, falls ein jährlich wiederkehrendes Ereignis
-                // im aktuellen Render-Zyklus gerade umgeschlagen ist (z.B. Silvester um Mitternacht)
-                let eventDate = new Date(event.date); // Start with the original date
-                if (event.yearly) {
-                    let currentYearEventDateCheck = new Date(Date.UTC(now.getFullYear(), eventDate.getUTCMonth(), eventDate.getUTCDate(), eventDate.getUTCHours(), eventDate.getUTCMinutes(), eventDate.getUTCSeconds()));
-                    if (currentYearEventDateCheck.getTime() < now.getTime()) {
-                        eventDate.setUTCFullYear(currentYearEventDateCheck.getUTCFullYear() + 1);
-                    }
-                }
-
-                let timeDifference = eventDate.getTime() - now.getTime();
-                const countdownElement = document.getElementById(`countdown-${event.name.replace(/\s+/g, '')}`);
-
-                if (!countdownElement) return; // If element doesn't exist (e.g., filtered out), skip
 
                 let countdownText = "";
                 if (timeDifference > 0) {
@@ -538,27 +642,66 @@
                     countdownText = `Noch ${days} Tage, ${hours} Stunden, ${minutes} Minuten, ${seconds} Sekunden`;
                 } else {
                     countdownText = "Das Ereignis ist bereits eingetroffen!";
-                    // Optional: Bei nicht-jährlichen Ereignissen, die abgelaufen sind,
-                    // könnte man hier `renderEvents()` aufrufen, um sie auszublenden.
-                    // Das würde aber die `details`-Tags wieder zuklappen lassen.
-                    // Eine bessere Lösung wäre, abgelaufene, nicht-jährliche Events erst zu entfernen,
-                    // wenn der Benutzer explizit neu filtert oder lädt.
                 }
-                countdownElement.textContent = countdownText;
-            });
 
-            // Optional: Wenn ein nicht-jährliches Ereignis abläuft, soll es verschwinden,
-            // aber das sollte nicht jede Sekunde die gesamte Liste neu rendern.
-            // Man könnte hier eine komplexere Logik einbauen, um nur das eine Element zu entfernen.
-            // Fürs Erste bleibt die Lösung, dass es erst beim nächsten Filter-/Suchvorgang verschwindet.
-            // Oder man fügt eine explizite Überprüfung und Entfernung in renderEvents() ein,
-            // die nur ausgeführt wird, wenn wirklich das Datum überfällig wird.
+                // Format the event date for display in local timezone
+                const eventDateFormatted = new Intl.DateTimeFormat('de-DE', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    timeZoneName: 'shortOffset' // e.g., "CEST"
+                }).format(eventDate);
+
+                // Assign a unique ID to each details element
+                const detailsId = `details-${event.name.replace(/\s+/g, '-')}-${index}`;
+
+                eventElement.innerHTML = `
+                    <h2>${event.name}</h2>
+                    <p class="countdown">${countdownText}</p>
+                    <p>Datum: ${eventDateFormatted}</p>
+                    ${event.userSuggested ? '<span class="tag">Von Benutzer vorgeschlagen</span>' : ""}
+                    ${event.description ? `<details id="${detailsId}" ${openedDetails.has(detailsId) ? 'open' : ''}><summary>Beschreibung</summary><p>${event.description}</p></details>` : ""}
+                `;
+
+                eventsContainer.appendChild(eventElement);
+
+                // Add event listener to prevent closing
+                if (event.description) {
+                    const detailsElement = document.getElementById(detailsId);
+                    if (detailsElement) {
+                        detailsElement.addEventListener('toggle', function(e) {
+                            // If the details is closing by user action, prevent it and re-open
+                            if (!this.open) { 
+                                e.preventDefault(); 
+                                this.open = true; 
+                            }
+                            // If it's opening, add to openedDetails set
+                            else { 
+                                openedDetails.add(detailsId);
+                            }
+                        });
+                        // Additional click listener for robustness on summary click
+                        detailsElement.querySelector('summary').addEventListener('click', function(e) {
+                            if (detailsElement.open) { // If it's already open, prevent default close behavior
+                                e.preventDefault();
+                            }
+                        });
+                    }
+                }
+            });
+            hideLoadingSpinner();
         }
 
-
         function toggleSuggestionForm() {
-            const form = document.getElementById("suggestion-form");
-            form.style.display = form.style.display === "none" ? "block" : "none";
+            const isHidden = suggestionSection.style.display === "none";
+            suggestionSection.style.display = isHidden ? "block" : "none";
+            toggleFormButton.setAttribute("aria-expanded", isHidden);
+            // Focus on the first input field when opening the form
+            if (isHidden) {
+                document.getElementById("event-name").focus();
+            }
         }
 
         document.getElementById("toggleFormButton").addEventListener("click", function() {
@@ -566,13 +709,19 @@
         });
 
         document.getElementById("search-input").addEventListener("input", function() {
-            renderEvents(this.value); // Beim Suchen neu rendern
+            updateAllEvents(this.value);
         });
 
         document.querySelectorAll("#category-menu button").forEach(button => {
             button.addEventListener("click", function() {
+                // Update aria-checked status for radio buttons
+                document.querySelectorAll("#category-menu button").forEach(btn => {
+                    btn.setAttribute("aria-checked", "false");
+                });
+                this.setAttribute("aria-checked", "true");
+
                 currentCategory = this.dataset.category;
-                renderEvents(document.getElementById("search-input").value); // Beim Kategorie-Wechsel neu rendern
+                updateAllEvents(document.getElementById("search-input").value);
             });
         });
 
@@ -595,9 +744,6 @@
                 if (response.ok) {
                     formularStatus.textContent = 'Vielen Dank für deinen Vorschlag!';
                     formular.reset();
-                    // Optional: Nach dem Senden eines Vorschlags könnte man die Liste neu rendern,
-                    // falls das vorgeschlagene Ereignis in der aktuellen Ansicht relevant wäre.
-                    // renderEvents(document.getElementById("search-input").value);
                 } else {
                     const errorData = await response.json();
                     if (errorData.errors) {
@@ -611,11 +757,9 @@
             }
         });
 
-        // Initiales Rendern der Ereignisse beim Laden der Seite
-        renderEvents();
-
-        // Nur die Countdowns jede Sekunde aktualisieren
-        setInterval(updateCountdowns, 1000);
+        // Initial update and then every second
+        setInterval(() => updateAllEvents(document.getElementById("search-input").value), 1000);
+        updateAllEvents();
     </script>
 </body>
 </html>
